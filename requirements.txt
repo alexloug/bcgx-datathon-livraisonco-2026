@@ -9,3 +9,4 @@ statsmodels
 jupyter
 pyarrow
 requests
+pytest

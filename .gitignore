@@ -218,3 +218,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Datathon : données générées et archives volumineuses
+data/processed/
+data/recent/
+data/archives/
+outputs/models/
+.DS_Store
