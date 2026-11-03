@@ -7,8 +7,8 @@ On avance en trois phases. On ne passe à la suivante qu'après avoir validé la
 
 | Phase | Question | Livrable | Statut |
 |---|---|---|---|
-| 1. État des lieux | Qu'a-t-on, et que voudrait-on avoir ? | Inventaire des sources + liste des features cibles (§1) | à faire |
-| 2. Qualité | Que valent ces données, arc par arc et feature par feature ? | `notebooks/02_qualite_donnees.ipynb` + tableau de synthèse (§2) | à faire |
+| 1. État des lieux | Qu'a-t-on, et que voudrait-on avoir ? | Inventaire des sources + liste des features cibles (§1) | fait (`data/README.md`) |
+| 2. Qualité | Que valent ces données, arc par arc et feature par feature ? | `notebooks/02_qualite_donnees.ipynb` + tableau de synthèse (§2) | fait, à relire en équipe |
 | 3. Décisions et dataset | Que garde-t-on, comment le traite-t-on ? | Journal des décisions (§3) + `data/processed/train.parquet` (§4) | à faire |
 
 ---
@@ -88,9 +88,22 @@ Un notebook `notebooks/02_qualite_donnees.ipynb`, une section par source, puis u
 
 ### 2.3 Synthèse attendue
 
-| Source / arc | Couverture | Valides | Problèmes repérés | Gravité | Traitement proposé |
-|---|---|---|---|---|---|
-| … | … | … | … | bloquant / gênant / mineur | … |
+Détail, graphiques et chiffres : `notebooks/02_qualite_donnees.ipynb` (partie 9).
+
+| Source / arc | Couverture | Problèmes repérés | Gravité | Traitement proposé |
+|---|---|---|---|---|
+| Champs-Elysées (4264) | 2010 → 19/11/2025 | muet depuis ; perte de capacité fin 2018-2019 (débit ÷ 2, occupation × 2) ; marche après JO 2024 | bloquant | proxy 4274 (débit : corr. 0,95, ratio ≈ 1) ; recalage pour l'occupation |
+| Convention (5671) | 2010 → 11/2026 | saut de débit 03/2016 ; occupation ÷ 2 en 03/2020 (recalibrage ?) ; trous 11/2022-06/2023 et 2024 | gênant | n'utiliser les niveaux qu'après 2020 |
+| Saint-Pères (191) | 2010 → 11/2026 | trou 11/2024 → 10/2025 ; un pic à 33 272 véh/h | gênant | exclure les blocs manquants, filtrer les pics |
+| Limitation à 30 km/h (08/2021) | — | aucune rupture visible sur les 3 arcs | mineur | simple indicateur |
+| Covid (03/2020 → 06/2021) | — | anomalie nette sur les 3 arcs | gênant | exclure ou marquer |
+| Météo | 2010 → J+16 | aucune ; effet brut sur le trafic faible | mineur | features, à confirmer en backtest |
+| Vacances zone C | 10/2017 → 2028 | rien avant 2017 | mineur | feature ; saisie 2010-2017 si besoin |
+| Chantiers, Que faire à Paris | pas d'historique | inutilisables en entraînement | mineur | écartés |
+
+Horizon proposé : **06/2021 → aujourd'hui** comme dataset de référence (régime homogène pour les 3 arcs, hors Covid).
+Variante : **2010 → aujourd'hui en cible relative** (normalisée par le niveau de l'arc), parce qu'on n'a que 1 à 5
+11-novembre valides par arc depuis 2021.
 
 ---
 
@@ -100,13 +113,13 @@ Un notebook `notebooks/02_qualite_donnees.ipynb`, une section par source, puis u
 
 | # | Sujet | Options envisagées | Décision | Pourquoi | Date |
 |---|---|---|---|---|---|
-| D1 | Arc Champs-Elysées muet depuis le 19/11/2025 | proxy 4401/4402 recalé sur 4264 ; historique 4264 seul ; profil moyen | | à trancher au tutorat du 05/11 | |
-| D2 | Profondeur d'historique | 13 mois API seuls ; + archives 2010-2025 ; + archives à partir de 2022 | | | |
-| D3 | Heures « Invalide » / « Barré » | exclure de l'entraînement ; garder avec un flag | | | |
-| D4 | Trous dans les séries | laisser NaN (le GBM gère) ; interpoler les trous courts ; remplir par profil | | | |
-| D5 | Valeurs aberrantes | écrêtage ; suppression ; rien | | | |
-| D6 | Périodes atypiques (confinements, JO) | exclure ; garder avec flag | | | |
-| D7 | Météo dans la fenêtre de prédiction | prévision ; climatologie ; pas de météo | | | |
+| D1 | Arc Champs-Elysées muet depuis le 19/11/2025 | proxy recalé sur 4264 ; historique 4264 seul ; profil moyen | proposé : 4274 recalé | 4401/4402 muets ; 4274 corr. débit 0,95, ratio stable | tutorat 05/11 |
+| D2 | Profondeur d'historique | 06/2021+ ; 2018+ hors Covid ; 2010+ en relatif | proposé : 06/2021+, variante 2010+ relative | ruptures Champs 2019 et Convention 2020 | |
+| D3 | Heures « Invalide » / « Barré » | exclure de l'entraînement ; garder avec un flag | proposé : exclure | cible absente ou douteuse | |
+| D4 | Trous dans les séries | laisser NaN (le GBM gère) ; interpoler les trous courts ; remplir par profil | proposé : pas d'interpolation | trous surtout en blocs de semaines | |
+| D5 | Valeurs aberrantes | écrêtage ; suppression ; rien | proposé : supprimer pics > 2 × q99,9 et séquences figées ≥ 6 h | rares mais absurdes | |
+| D6 | Périodes atypiques (confinements, JO) | exclure ; garder avec flag | proposé : Covid exclu, JO marqués | Covid hors régime ; JO = rupture Champs | |
+| D7 | Météo dans la fenêtre de prédiction | prévision ; climatologie ; pas de météo | proposé : prévision, forme robuste | effet faible, à confirmer en backtest | |
 
 ---
 
