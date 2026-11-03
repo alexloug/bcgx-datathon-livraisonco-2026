@@ -12,10 +12,12 @@ Code du pipeline, organisé par stream. Toutes les commandes se lancent depuis l
 | `data/build_external.py` | A | Fériés, confinements, JO → `data/processed/external.parquet` (météo, vacances à ajouter) |
 | `features/build.py` | B | Features calendaires et lags ≥ 144 h, refus des lags plus courts |
 | `models/base.py` | B | Interface `fit(traffic, cutoff)` / `predict(traffic, cutoff, start, end)` |
+| `models/preprocessing.py` | B | Sélection des features, retraitement des NaN, encodage (appris ≤ cutoff) |
+| `models/xgb.py` | B | XGBoost, un modèle par cible (`--model xgb`), doc : `docs/modele_xgboost.md` |
 | `models/baseline.py` | B | Moyenne des 4 dernières semaines, même jour et même heure |
 | `models/gbm.py` | B | Modèle gradient boosting, à implémenter |
-| `evaluate.py` | C | Backtest : cutoff le jeudi 23:00, 1 jour sauté, 5 jours prédits |
-| `predict.py` | C | CSV de rendu, contrôlé avec le test du brief |
+| `evaluate.py` | C | Backtest sur `dataset.parquet` : cutoff le jeudi 23:00, 1 jour sauté, 5 jours prédits (`--cutoffs` pour des semaines choisies) |
+| `predict.py` | C | CSV de rendu depuis `dataset.parquet`, contrôlé avec le test du brief |
 
 ## Pipeline
 
@@ -24,8 +26,8 @@ python -m src.data.update                     # ajouter --history 2010 2025 pour
 python -m src.data.build_dataset              # dataset d'entraînement unifié
 python -m src.data.build_traffic
 python -m src.data.build_external
-python -m src.evaluate --model baseline --n-folds 8
-python -m src.predict --model baseline --group <nom_du_groupe>
+python -m src.evaluate --model xgb --n-folds 8
+python -m src.predict --model xgb --group <nom_du_groupe>
 python -m pytest -q tests
 ```
 
