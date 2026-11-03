@@ -15,7 +15,9 @@ Usage :
 
 import argparse
 import io
+import subprocess
 import zipfile
+from contextlib import contextmanager
 
 import pandas as pd
 import requests
@@ -75,13 +77,31 @@ def update_recent() -> pd.DataFrame:
     return df
 
 
+@contextmanager
+def open_member(zf: zipfile.ZipFile, zip_path, member: str):
+    """Certains zips (2021…) sont en Deflate64, que `zipfile` ne lit pas : on passe alors par `unzip -p`."""
+    try:
+        f = zf.open(member)
+    except NotImplementedError:
+        proc = subprocess.Popen(["unzip", "-p", str(zip_path), member], stdout=subprocess.PIPE)
+        try:
+            yield proc.stdout
+        finally:
+            proc.stdout.close()
+            if proc.wait() != 0:
+                raise RuntimeError(f"unzip a échoué sur {member}")
+        return
+    with f:
+        yield f
+
+
 def read_archive(zip_path, streets=STREETS) -> pd.DataFrame:
     """Lit les fichiers hebdomadaires d'un zip annuel et ne garde que les lignes de nos rues."""
     keys = [s.encode() for s in streets]
     header, rows = None, []
     with zipfile.ZipFile(zip_path) as zf:
         for member in sorted(zf.namelist()):
-            with zf.open(member) as f:
+            with open_member(zf, zip_path, member) as f:
                 header = f.readline()
                 for line in f:
                     if any(k in line for k in keys) and any(k in line.split(b";", 2)[1] for k in keys):
@@ -107,25 +127,39 @@ def read_archive(zip_path, streets=STREETS) -> pd.DataFrame:
     return out.dropna(subset=["datetime"]).drop_duplicates(["arc_id", "datetime"], keep="last")[COLUMNS]
 
 
-def update_history(years=HISTORY_YEARS, force: bool = False) -> None:
-    HISTORY_DIR.mkdir(parents=True, exist_ok=True)
-    for year in years:
-        out = HISTORY_DIR / f"{year}.parquet"
-        if out.exists() and not force:
-            print(f"trafic   {year}        déjà présent -> {out.name}")
-            continue
-        tmp = HISTORY_DIR / f"_{year}.zip"
+def update_year(year: int) -> pd.DataFrame:
+    tmp = HISTORY_DIR / f"_{year}.zip"
+    try:
         with requests.get(HISTORY_URL.format(year=year), stream=True, timeout=600) as resp:
             resp.raise_for_status()
             with open(tmp, "wb") as f:
                 for chunk in resp.iter_content(chunk_size=1 << 20):
                     f.write(chunk)
+        df = read_archive(tmp)
+    finally:
+        tmp.unlink(missing_ok=True)
+    df.to_parquet(HISTORY_DIR / f"{year}.parquet", index=False)
+    return df
+
+
+def update_history(years=HISTORY_YEARS, force: bool = False) -> None:
+    """Une année en échec n'empêche pas les suivantes ; l'erreur est levée à la fin."""
+    HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+    failed = []
+    for year in years:
+        out = HISTORY_DIR / f"{year}.parquet"
+        if out.exists() and not force:
+            print(f"trafic   {year}        déjà présent -> {out.name}")
+            continue
         try:
-            df = read_archive(tmp)
-        finally:
-            tmp.unlink()
-        df.to_parquet(out, index=False)
+            df = update_year(year)
+        except Exception as exc:
+            print(f"trafic   {year}        ÉCHEC : {exc!r}")
+            failed.append(year)
+            continue
         print(f"trafic   {year}        {df['arc_id'].nunique()} arcs, {len(df)} lignes -> {out.name}")
+    if failed:
+        raise RuntimeError(f"Archives trafic en échec : {failed}")
 
 
 def update(history: list[int] | None = None, force: bool = False) -> None:
