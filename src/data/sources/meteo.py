@@ -3,7 +3,7 @@
 - historique.parquet : observé (réanalyse ERA5 / ERA5-Land), de 2010 à ~J-2.
 - prevision.parquet  : modèles de prévision, 7 jours passés + 16 jours à venir. Indispensable pour la
   fenêtre à prédire : on ne connaîtra pas la météo observée du 07 au 11/11 au moment du rendu.
-- prevision_historique.parquet : prévisions archivées (depuis 2022), pour backtester avec la même
+- prevision_historique.parquet : prévisions archivées (depuis 2021), pour backtester avec la même
   qualité d'information qu'au moment du rendu plutôt qu'avec l'observé.
 
 Usage : python -m src.data.sources.meteo
@@ -24,7 +24,7 @@ VARIABLES = ["temperature_2m", "apparent_temperature", "precipitation", "rain", 
              "cloud_cover", "wind_speed_10m", "wind_gusts_10m", "relative_humidity_2m",
              "weather_code", "is_day"]
 HISTORY_START = 2010
-HISTORICAL_FORECAST_START = 2022
+HISTORICAL_FORECAST_START = 2021
 
 
 def fetch(url: str, **params) -> pd.DataFrame:

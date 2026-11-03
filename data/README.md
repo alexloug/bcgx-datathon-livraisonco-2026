@@ -20,7 +20,7 @@ Convention : `datetime` en UTC (tz-aware), dates calendaires (`date`, `debut`, `
 | `trafic/` | `historique/<année>.parquet` | [Archives annuelles](https://opendata.paris.fr/explore/dataset/comptages-routiers-permanents-historique/) (zips hebdomadaires) | 2010 → 2025 | annuelle |
 | `meteo/` | `historique.parquet` | [Open-Meteo Historical](https://open-meteo.com/en/docs/historical-weather-api) (réanalyse ERA5) | 2010 → J-2 | quotidienne |
 | `meteo/` | `prevision.parquet` | [Open-Meteo Forecast](https://open-meteo.com/en/docs) | J-7 → J+16 | horaire |
-| `meteo/` | `prevision_historique.parquet` | [Open-Meteo Historical Forecast](https://open-meteo.com/en/docs/historical-forecast-api) | 2022 → J-1 | quotidienne |
+| `meteo/` | `prevision_historique.parquet` | [Open-Meteo Historical Forecast](https://open-meteo.com/en/docs/historical-forecast-api) | 2021 → J-1 | quotidienne |
 | `calendrier/` | `jours_feries.parquet` | [calendrier.api.gouv.fr](https://calendrier.api.gouv.fr/jours-feries/) | 2006 → 2031 | rare |
 | `calendrier/` | `vacances_scolaires.parquet` | [Calendrier scolaire](https://data.education.gouv.fr/explore/dataset/fr-en-calendrier-scolaire/), académie de Paris | 2017-2018 → 2027-2028 | annuelle |
 | `evenements/` | `evenements_manuels.csv` → `evenements.parquet` | saisie manuelle | 2010 → N+1 | à la main |
@@ -28,6 +28,7 @@ Convention : `datetime` en UTC (tz-aware), dates calendaires (`date`, `debut`, `
 | `chantiers/` | `chantiers_perturbants.parquet` | [Chantiers perturbants](https://opendata.paris.fr/explore/dataset/chantiers-perturbants/) | en cours / à venir | quotidienne |
 | `chantiers/` | `chantiers_a_paris.parquet` | [Chantiers à Paris](https://opendata.paris.fr/explore/dataset/chantiers-a-paris/) | en cours / à venir | quotidienne |
 | `chantiers/` | `chantiers_2024.parquet` | [Historique des chantiers 2024](https://opendata.paris.fr/explore/dataset/historique-chantiers-a-paris-en-2024/) | 2024 | figée |
+| `processed/` | `dataset.parquet` (+ `dataset.json`) | `src/data/build_dataset.py`, voir `docs/dataset_entrainement.md` | 21/06/2021 → fin de la fenêtre | dérivé |
 | `processed/` | `traffic_hourly.parquet`, `external.parquet` | `src/data/build_traffic.py`, `build_external.py` | — | dérivés |
 
 ## Détail par source

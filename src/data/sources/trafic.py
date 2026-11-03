@@ -168,11 +168,12 @@ def update(history: list[int] | None = None, force: bool = False) -> None:
         update_history(history, force)
 
 
-def load() -> pd.DataFrame:
-    """Archives puis API ; sur les heures communes, l'API l'emporte."""
-    parts = [pd.read_parquet(p) for p in sorted(HISTORY_DIR.glob("*.parquet"))]
+def load(arc_ids: list[str] | None = None) -> pd.DataFrame:
+    """Archives puis API ; sur les heures communes, l'API l'emporte. `arc_ids` filtre à la lecture."""
+    filters = [("arc_id", "in", arc_ids)] if arc_ids else None
+    parts = [pd.read_parquet(p, filters=filters) for p in sorted(HISTORY_DIR.glob("*.parquet"))]
     if RECENT_PATH.exists():
-        parts.append(pd.read_parquet(RECENT_PATH))
+        parts.append(pd.read_parquet(RECENT_PATH, filters=filters))
     if not parts:
         raise FileNotFoundError(f"Rien dans {TRAFIC_DIR} : lancer python -m src.data.update")
     df = pd.concat(parts, ignore_index=True)

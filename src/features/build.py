@@ -35,6 +35,29 @@ def lag_features(traffic: pd.DataFrame, lags=LAGS_HOURS) -> pd.DataFrame:
     return out
 
 
+def level_features(traffic: pd.DataFrame, offset: int = MIN_LAG_HOURS, window_days: int = 28) -> pd.DataFrame:
+    """Niveau récent de l'arc : moyenne des `window_days` jours qui s'arrêtent `offset` heures avant t.
+
+    Suit les ruptures de niveau (JO 2024, baisse de Convention) que les lags hebdomadaires ne voient qu'à moitié.
+    """
+    assert_no_leakage([offset])
+    values = traffic[TARGETS].where(traffic["is_valid"])
+    out = pd.DataFrame(index=traffic.index)
+    for col in TARGETS:
+        shifted = values[col].groupby(traffic["arc"]).shift(offset)
+        out[f"{col}_niveau{window_days}j"] = shifted.groupby(traffic["arc"]).transform(
+            lambda s: s.rolling(24 * window_days, min_periods=24 * 7).mean())
+    return out
+
+
+def yearly_lag_features(traffic: pd.DataFrame, lag: int = 364 * 24) -> pd.DataFrame:
+    """Même heure, même jour de semaine, 52 semaines plus tôt (utile pour le 11 novembre, les vacances…)."""
+    assert_no_leakage([lag])
+    values = traffic[TARGETS].where(traffic["is_valid"])
+    shifted = values.groupby(traffic["arc"]).shift(lag)
+    return shifted.add_suffix("_lag52s")
+
+
 def assert_no_leakage(lags) -> None:
     too_short = [lag for lag in lags if lag < MIN_LAG_HOURS]
     if too_short:

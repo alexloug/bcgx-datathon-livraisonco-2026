@@ -7,6 +7,7 @@ Code du pipeline, organisé par stream. Toutes les commandes se lancent depuis l
 | `config.py` | tous | Arcs (nœuds amont/aval), chemins, horizon (`MIN_LAG_HOURS = 144`) |
 | `data/update.py` | A | Met à jour toutes les sources open data → `data/<source>/` (voir `data/README.md`) |
 | `data/sources/*.py` | A | Un connecteur par source : trafic, météo, calendrier, événements, chantiers |
+| `data/build_dataset.py` | A | Dataset unifié cibles + features → `data/processed/dataset.parquet` (doc : `docs/dataset_entrainement.md`) |
 | `data/build_traffic.py` | A | `data/trafic/` (archives + API) → `data/processed/traffic_hourly.parquet` |
 | `data/build_external.py` | A | Fériés, confinements, JO → `data/processed/external.parquet` (météo, vacances à ajouter) |
 | `features/build.py` | B | Features calendaires et lags ≥ 144 h, refus des lags plus courts |
@@ -20,6 +21,7 @@ Code du pipeline, organisé par stream. Toutes les commandes se lancent depuis l
 
 ```bash
 python -m src.data.update                     # ajouter --history 2010 2025 pour les archives trafic
+python -m src.data.build_dataset              # dataset d'entraînement unifié
 python -m src.data.build_traffic
 python -m src.data.build_external
 python -m src.evaluate --model baseline --n-folds 8

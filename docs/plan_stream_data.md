@@ -9,7 +9,7 @@ On avance en trois phases. On ne passe à la suivante qu'après avoir validé la
 |---|---|---|---|
 | 1. État des lieux | Qu'a-t-on, et que voudrait-on avoir ? | Inventaire des sources + liste des features cibles (§1) | fait (`data/README.md`) |
 | 2. Qualité | Que valent ces données, arc par arc et feature par feature ? | `notebooks/02_qualite_donnees.ipynb` + tableau de synthèse (§2) | fait, à relire en équipe |
-| 3. Décisions et dataset | Que garde-t-on, comment le traite-t-on ? | Journal des décisions (§3) + `data/processed/train.parquet` (§4) | à faire |
+| 3. Décisions et dataset | Que garde-t-on, comment le traite-t-on ? | Journal des décisions (§3) + `data/processed/dataset.parquet` (§4) | fait : `docs/dataset_entrainement.md` |
 
 ---
 
@@ -113,8 +113,8 @@ Variante : **2010 → aujourd'hui en cible relative** (normalisée par le niveau
 
 | # | Sujet | Options envisagées | Décision | Pourquoi | Date |
 |---|---|---|---|---|---|
-| D1 | Arc Champs-Elysées muet depuis le 19/11/2025 | proxy recalé sur 4264 ; historique 4264 seul ; profil moyen | proposé : 4274 recalé | 4401/4402 muets ; 4274 corr. débit 0,95, ratio stable | tutorat 05/11 |
-| D2 | Profondeur d'historique | 06/2021+ ; 2018+ hors Covid ; 2010+ en relatif | proposé : 06/2021+, variante 2010+ relative | ruptures Champs 2019 et Convention 2020 | |
+| D1 | Arc Champs-Elysées muet depuis le 19/11/2025 | proxy recalé sur 4264 ; historique 4264 seul ; profil moyen | débit : 4274 (secours 4281) ; occupation : moyenne 4274/4281 | 4267 inutilisable ; MAE 2025 : débit 46 véh/h, occupation 4,1 pts (notebook 03) | à confirmer au tutorat 05/11 |
+| D2 | Profondeur d'historique | 06/2021+ ; 2018+ hors Covid ; 2010+ en relatif | 21/06/2021+ | prévisions météo archivées depuis 2021 (backtest) ; fin du couvre-feu ; ruptures Champs 2019 et Convention 2020 | 03/11 |
 | D3 | Heures « Invalide » / « Barré » | exclure de l'entraînement ; garder avec un flag | proposé : exclure | cible absente ou douteuse | |
 | D4 | Trous dans les séries | laisser NaN (le GBM gère) ; interpoler les trous courts ; remplir par profil | proposé : pas d'interpolation | trous surtout en blocs de semaines | |
 | D5 | Valeurs aberrantes | écrêtage ; suppression ; rien | proposé : supprimer pics > 2 × q99,9 et séquences figées ≥ 6 h | rares mais absurdes | |
