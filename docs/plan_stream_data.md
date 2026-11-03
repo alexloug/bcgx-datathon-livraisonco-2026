@@ -17,13 +17,16 @@ On avance en trois phases. On ne passe à la suivante qu'après avoir validé la
 
 ### 1.1 Données à disposition
 
-| Source | Contenu | Période | Où | Remarques |
-|---|---|---|---|---|
-| Comptages routiers permanents (API open data Paris) | Débit horaire `q`, taux d'occupation `k`, état trafic, état de l'arc, par arc et par heure | 13 mois glissants, publiés en J-1 | `data/recent/*.csv` via `src/data/fetch_recent.py` | Source principale. En-têtes différents des exports du brief (`COLUMN_MAP`) |
-| Instantané fourni avec le brief | Même contenu, export « grand public » | jusqu'au 31/10/2026 | `data/*.csv` | Repli si `data/recent/` est vide |
-| Archives annuelles open data | Même contenu | 2010-2025 | `data/archives/` (non versionné, vide pour l'instant) | Permettrait d'apprendre les effets annuels (11 novembre, vacances de Toussaint) |
-| Proxys Champs-Elysées | Arcs 4401, 4402 sur la même avenue | 13 mois | `data/recent/champs_proxies.csv` | À évaluer : l'arc 4264 est muet depuis le 19/11/2025 |
-| Calendrier externe | Fériés, confinements, JO 2024 | 2010-2026 | `data/processed/external.parquet` | Construit par `src/data/build_external.py` |
+Inventaire détaillé, schémas et limites : [`data/README.md`](../data/README.md). Tout se met à jour avec
+`python -m src.data.update` (connecteurs dans `src/data/sources/`).
+
+| Source | Contenu | Période | Dossier |
+|---|---|---|---|
+| Comptages routiers (API + archives open data Paris) | Débit, occupation, états, ~50 arcs des 3 rues | 2010 → J-1 | `data/trafic/` |
+| Open-Meteo | Météo horaire observée, prévue, et prévisions archivées | 2010 → J+16 | `data/meteo/` |
+| calendrier.api.gouv.fr, data.education.gouv.fr | Jours fériés, vacances zone C | 2006 → 2031 / 2017 → 2028 | `data/calendrier/` |
+| Saisie manuelle + Que faire à Paris | Cérémonies, défilés ; agenda culturel | 2010 → N+1 | `data/evenements/` |
+| Open data Paris | Chantiers perturbants, emprises de chantier | 2024 → à venir | `data/chantiers/` |
 
 Constat rapide sur `traffic_hourly.parquet` (01/10/2025 → 01/11/2026, 9 525 heures par arc) :
 

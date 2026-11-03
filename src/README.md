@@ -5,8 +5,9 @@ Code du pipeline, organisé par stream. Toutes les commandes se lancent depuis l
 | Fichier | Stream | Rôle |
 |---|---|---|
 | `config.py` | tous | Arcs (nœuds amont/aval), chemins, horizon (`MIN_LAG_HOURS = 144`) |
-| `data/fetch_recent.py` | A | API open data Paris (13 mois glissants, J-1) → `data/recent/*.csv` |
-| `data/build_traffic.py` | A | `data/recent/` (ou l'instantané `data/*.csv`) → `data/processed/traffic_hourly.parquet` |
+| `data/update.py` | A | Met à jour toutes les sources open data → `data/<source>/` (voir `data/README.md`) |
+| `data/sources/*.py` | A | Un connecteur par source : trafic, météo, calendrier, événements, chantiers |
+| `data/build_traffic.py` | A | `data/trafic/` (archives + API) → `data/processed/traffic_hourly.parquet` |
 | `data/build_external.py` | A | Fériés, confinements, JO → `data/processed/external.parquet` (météo, vacances à ajouter) |
 | `features/build.py` | B | Features calendaires et lags ≥ 144 h, refus des lags plus courts |
 | `models/base.py` | B | Interface `fit(traffic, cutoff)` / `predict(traffic, cutoff, start, end)` |
@@ -18,7 +19,7 @@ Code du pipeline, organisé par stream. Toutes les commandes se lancent depuis l
 ## Pipeline
 
 ```bash
-python -m src.data.fetch_recent
+python -m src.data.update                     # ajouter --history 2010 2025 pour les archives trafic
 python -m src.data.build_traffic
 python -m src.data.build_external
 python -m src.evaluate --model baseline --n-folds 8
@@ -33,5 +34,5 @@ Elle est alors utilisable avec `--model <nom>` dans `evaluate.py` et `predict.py
 
 - `datetime` en UTC (tz-aware) partout ; conversion en heure de Paris seulement pour le CSV de rendu.
 - Une feature pour l'heure t n'utilise que des données à t - 144 h ou avant.
-- Les données générées (`data/processed/`, `data/archives/`, `outputs/models/`) ne sont pas versionnées.
+- Les données téléchargées ou générées (`data/**/*.parquet`, `outputs/models/`) ne sont pas versionnées.
 - macOS : LightGBM et XGBoost ont besoin d'OpenMP (`brew install libomp`).
