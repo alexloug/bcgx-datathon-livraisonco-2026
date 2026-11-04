@@ -3,6 +3,8 @@
 L'endpoint /exports n'a pas de limite de lignes, contrairement à /records (10 000 max).
 """
 
+from __future__ import annotations
+
 import io
 
 import pandas as pd

@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
 import pytest
+import subprocess
+import sys
+from pathlib import Path
 
 from src.config import ARCS, TARGETS, TZ
-from src.models.gbm import GBMModel
-from src.models.mlp import MLPModel
 from src.models.preprocessing import Preprocessor, feature_columns
-from src.models.xgb import XGBModel
 
 
 def fake_dataset(weeks=8, seed=0):
@@ -49,13 +49,25 @@ def test_preprocessor_leaves_no_nan_and_keeps_columns_stable():
     assert (X_new["nb_lags_manquants"] >= 1).all()
 
 
-@pytest.mark.parametrize("model", [lambda: XGBModel(n_estimators=20), lambda: GBMModel(n_estimators=20),
-                                   lambda: MLPModel(max_epochs=3)], ids=["xgb", "gbm", "mlp"])
+@pytest.mark.parametrize("model", ["xgb", "gbm", "mlp"])
 def test_model_fits_and_predicts_bounded_values(model):
-    df = fake_dataset()
-    cutoff = df["datetime"].max() - pd.Timedelta(days=6)
-    start, end = cutoff + pd.Timedelta(hours=25), df["datetime"].max()
-    pred = model().fit(df, cutoff).predict(df, cutoff, start, end)
-    assert len(pred) == len(ARCS) * len(pd.date_range(start, end, freq="h"))
-    assert not pred[TARGETS].isna().any().any()
-    assert (pred[TARGETS] >= 0).all().all() and (pred["taux_occupation"] <= 100).all()
+    # Les runtimes OpenMP de PyTorch et des boostings doivent rester dans des processus distincts.
+    code = """
+import runpy
+import pandas as pd
+from src.config import ARCS, TARGETS
+from src.models.registry import MODELS
+fake_dataset = runpy.run_path('tests/test_models.py')['fake_dataset']
+df = fake_dataset()
+cutoff = df['datetime'].max() - pd.Timedelta(days=6)
+start, end = cutoff + pd.Timedelta(hours=25), df['datetime'].max()
+name = __import__('sys').argv[1]
+params = {'max_epochs': 3} if name == 'mlp' else {'n_estimators': 20, 'n_jobs': 2}
+pred = MODELS[name](**params).fit(df, cutoff).predict(df, cutoff, start, end)
+assert len(pred) == len(ARCS) * len(pd.date_range(start, end, freq='h'))
+assert not pred[TARGETS].isna().any().any()
+assert (pred[TARGETS] >= 0).all().all() and (pred['taux_occupation'] <= 100).all()
+"""
+    result = subprocess.run([sys.executable, "-c", code, model], cwd=Path(__file__).resolve().parents[1],
+                            capture_output=True, text=True, timeout=120)
+    assert result.returncode == 0, result.stdout + result.stderr

@@ -36,14 +36,18 @@ def default_cutoffs(traffic: pd.DataFrame, n_folds: int) -> list[pd.Timestamp]:
     return [(d + pd.Timedelta(hours=23)).tz_localize(TZ).tz_convert("UTC") for d in thursdays]
 
 
-def backtest(model_name: str, traffic: pd.DataFrame, cutoffs) -> pd.DataFrame:
+def backtest(model_name: str, traffic: pd.DataFrame, cutoffs, model_params=None) -> pd.DataFrame:
     rows = []
     for cutoff in cutoffs:
         start, end = window(cutoff)
-        model = MODELS[model_name]().fit(traffic, cutoff)
+        model = MODELS[model_name](**(model_params or {})).fit(traffic, cutoff)
         pred = model.predict(traffic, cutoff, start, end)
         truth = traffic[(traffic["datetime"] >= start) & (traffic["datetime"] <= end) & traffic["is_valid"]]
-        merged = truth.merge(pred, on=["arc", "datetime"], suffixes=("", "_pred"))
+        if pred.duplicated(["arc", "datetime"]).any():
+            raise ValueError("Prédictions dupliquées pour un arc et une heure")
+        merged = truth.merge(pred, on=["arc", "datetime"], suffixes=("", "_pred"), how="left", validate="one_to_one")
+        if merged.empty or not np.isfinite(merged[[f"{c}_pred" for c in TARGETS]].to_numpy()).all():
+            raise ValueError(f"Backtest vide ou prédictions manquantes/non finies au cutoff {cutoff}")
         merged["horizon_day"] = (merged["datetime"] - start).dt.days + 1
         merged["cutoff"] = cutoff
         rows.append(merged)

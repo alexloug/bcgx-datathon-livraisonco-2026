@@ -12,6 +12,8 @@ Usage : python -m src.data.build_dataset [--start "2021-06-21 00:00"] [--end "20
 (après python -m src.data.update)
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 from datetime import timedelta

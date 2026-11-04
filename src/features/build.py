@@ -4,6 +4,8 @@ Règle : une feature pour l'heure t ne peut utiliser que des valeurs observées 
 ou avant (144 h pour la version notée). `assert_no_leakage` le vérifie sur les lags.
 """
 
+from __future__ import annotations
+
 import pandas as pd
 
 from src.config import MIN_LAG_HOURS, TARGETS, TZ

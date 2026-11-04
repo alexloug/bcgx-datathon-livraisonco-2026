@@ -13,6 +13,8 @@ from datetime import date, timedelta
 
 import pandas as pd
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from src.config import METEO_DIR, PARIS_LAT, PARIS_LON
 
@@ -31,8 +33,11 @@ REFRESH_DAYS = 14   # mise à jour incrémentale : on retélécharge ces dernier
 def fetch(url: str, **params) -> pd.DataFrame:
     params = {"latitude": PARIS_LAT, "longitude": PARIS_LON, "hourly": ",".join(VARIABLES),
               "timezone": "UTC", **params}
-    resp = requests.get(url, params=params, timeout=300)
-    resp.raise_for_status()
+    retry = Retry(total=3, backoff_factor=2, status_forcelist=[429, 500, 502, 503, 504])
+    with requests.Session() as session:
+        session.mount("https://", HTTPAdapter(max_retries=retry))
+        resp = session.get(url, params=params, timeout=(30, 300))
+        resp.raise_for_status()
     df = pd.DataFrame(resp.json()["hourly"])
     df.insert(0, "datetime", pd.to_datetime(df.pop("time"), utc=True))
     return df.dropna(subset=VARIABLES, how="all")

@@ -29,7 +29,8 @@ Convention : `datetime` en UTC (tz-aware), dates calendaires (`date`, `debut`, `
 | `chantiers/` | `chantiers_a_paris.parquet` | [Chantiers à Paris](https://opendata.paris.fr/explore/dataset/chantiers-a-paris/) | en cours / à venir | quotidienne |
 | `chantiers/` | `historique/<année>.parquet` | Historique des chantiers à Paris, une archive par an ([2024](https://opendata.paris.fr/explore/dataset/historique-chantiers-a-paris-en-2024/)) | 2019 → 2024 | figée |
 | `processed/` | `dataset.parquet` (+ `dataset.json`) | `src/data/build_dataset.py`, voir `docs/dataset_entrainement.md` | 21/06/2021 → fin de la fenêtre | dérivé |
-| `processed/` | `traffic_hourly.parquet`, `external.parquet` | `src/data/build_traffic.py`, `build_external.py` | — | dérivés |
+| `processed/` | `dataset_modele.parquet` (+ `dataset_modele.json`) | `src/data/export_dataset.py`, voir `docs/livraison_dataset.md` | idem, 44 features retenues | entrée du stream 2 |
+| `processed/` | `traffic_hourly.parquet`, `external.parquet` | outils complémentaires `build_traffic.py`, `build_external.py` | — | ancienne chaîne, facultatifs |
 
 ## Détail par source
 
@@ -54,8 +55,8 @@ taux_occupation, etat_trafic, etat_arc, source` (`api` ou `archive`).
 
 Un point au centre de Paris (48.8566, 2.3522). Variables : température (réelle et ressentie), précipitations,
 pluie, neige, nébulosité, vent et rafales, humidité, code temps, jour/nuit.
-On entraîne sur l'observé, mais au moment du rendu on n'aura que la prévision du 07 au 11/11 :
-`prevision_historique` sert à mesurer l'effet de cette différence en backtest.
+Le modèle utilise les prévisions archivées sur l'historique et la prévision courante sur la fenêtre du rendu.
+L'observé reste réservé à l'analyse et est exclu des features du modèle.
 
 ### calendrier/
 

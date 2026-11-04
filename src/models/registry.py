@@ -1,13 +1,16 @@
-"""Noms de modèles utilisables en ligne de commande (evaluate.py, predict.py)."""
+"""Modèles chargés seulement à leur utilisation (dépendances natives facultatives)."""
+from importlib import import_module
 
-from src.models.baseline import SeasonalBaseline
-from src.models.gbm import GBMModel
-from src.models.mlp import MLPModel
-from src.models.xgb import XGBModel
+
+def _factory(module, name):
+    def create(**params):
+        return getattr(import_module(module), name)(**params)
+    return create
+
 
 MODELS = {
-    "baseline": SeasonalBaseline,
-    "gbm": GBMModel,
-    "mlp": MLPModel,
-    "xgb": XGBModel,
+    "baseline": _factory("src.models.baseline", "SeasonalBaseline"),
+    "gbm": _factory("src.models.gbm", "GBMModel"),
+    "mlp": _factory("src.models.mlp", "MLPModel"),
+    "xgb": _factory("src.models.xgb", "XGBModel"),
 }
