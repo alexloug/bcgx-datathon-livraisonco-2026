@@ -1,7 +1,9 @@
-"""Stream C : produit le CSV de rendu (07/11 00:00 -> 11/11 23:00) et le vérifie avec le test du brief.
+"""Point d'entrée du rendu : produit outputs/output_<groupe>.csv (07/11 00:00 -> 11/11 23:00), vérifié avec le test du brief.
 
-Usage : python -m src.predict --model baseline --group <nom_du_groupe>
-Entrée : data/processed/dataset.parquet. Le cutoff est sa dernière heure observée (cible valide).
+Usage :
+    python -m src.predict --group <groupe>              # part des données déjà présentes
+    python -m src.predict --group <groupe> --refresh    # met d'abord à jour trafic et prévision météo, reconstruit le dataset
+Entrée : data/processed/dataset_modele.parquet. Le cutoff est sa dernière heure observée (cible valide).
 """
 
 import argparse
@@ -9,7 +11,8 @@ from datetime import datetime
 
 import pandas as pd
 
-from src.config import ARCS, DATASET_PATH, OUTPUTS_DIR, SUBMISSION_END, SUBMISSION_START, TARGETS, TZ
+from src.config import ARCS, DATA_DIR, DATASET_MODELE_PATH, OUTPUTS_DIR, SUBMISSION_END, SUBMISSION_START, TARGETS, TZ
+from src.data import build_dataset, export_dataset, update
 from src.models.registry import MODELS
 
 OUTPUT_COLUMNS = {"arc": object, "datetime": object, "debit_horaire": float, "taux_occupation": float}
@@ -37,22 +40,58 @@ def check_submission(df: pd.DataFrame) -> None:
     assert not df[TARGETS].isna().any().any(), "Des prédictions sont manquantes (NaN)"
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="baseline", choices=list(MODELS))
-    parser.add_argument("--group", required=True, help="nom du groupe, utilisé dans output_<groupe>.csv")
-    args = parser.parse_args()
+REQUIRED_SOURCES = ["trafic/recent.parquet", "meteo/prevision.parquet", "meteo/prevision_historique.parquet",
+                    "calendrier/jours_feries.parquet", "calendrier/vacances_scolaires.parquet",
+                    "evenements/evenements.parquet"]
 
-    traffic = pd.read_parquet(DATASET_PATH)
+
+def refresh() -> None:
+    """Trafic et prévision météo à jour, puis dataset reconstruit et exporté (contrôles bloquants)."""
+    if not update.main(["trafic", "meteo"]):
+        raise SystemExit("Échec de la mise à jour des données (voir ci-dessus) : rien n'a été reconstruit.")
+    check_sources()
+    df, meta = build_dataset.build_dataset()
+    build_dataset.save(df, meta)
+    export_dataset.write()
+
+
+def check_sources() -> None:
+    missing = [p for p in REQUIRED_SOURCES if not (DATA_DIR / p).exists()]
+    if missing:
+        raise SystemExit(f"Données manquantes dans data/ : {', '.join(missing)}. "
+                         "Lancer `python -m src.data.update` (ou ajouter --refresh).")
+
+
+def predict(model_name: str, group: str) -> pd.DataFrame:
+    if not DATASET_MODELE_PATH.exists():
+        raise SystemExit(f"{DATASET_MODELE_PATH} introuvable : lancer avec --refresh, ou "
+                         "`python -m src.data.build_dataset` puis `python -m src.data.export_dataset`.")
+    traffic = pd.read_parquet(DATASET_MODELE_PATH)
     cutoff = traffic.loc[traffic["is_valid"], "datetime"].max()
     start = pd.Timestamp(SUBMISSION_START, tz=TZ).tz_convert("UTC")
     end = pd.Timestamp(SUBMISSION_END, tz=TZ).tz_convert("UTC")
     print(f"Cutoff : {cutoff.tz_convert(TZ):%Y-%m-%d %H:%M} (Paris), horizon max {(end - cutoff) / pd.Timedelta(hours=1):.0f} h")
-
-    model = MODELS[args.model]().fit(traffic, cutoff)
+    model = MODELS[model_name]().fit(traffic, cutoff)
     submission = to_submission(model.predict(traffic, cutoff, start, end))
-    check_submission(submission)
-
-    path = OUTPUTS_DIR / f"output_{args.group}.csv"
+    try:
+        check_submission(submission)
+    except AssertionError as err:
+        raise SystemExit(f"Contrôle du format BCG échoué : {err}. Aucun fichier écrit.")
+    path = OUTPUTS_DIR / f"output_{group}.csv"
+    OUTPUTS_DIR.mkdir(exist_ok=True)
     submission.to_csv(path, sep=";")
     print(f"-> {path}")
+    return submission
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", default="xgb", choices=list(MODELS))
+    parser.add_argument("--group", required=True, help="nom du groupe, utilisé dans output_<groupe>.csv")
+    parser.add_argument("--refresh", action="store_true", help="met à jour trafic et météo puis reconstruit le dataset")
+    args = parser.parse_args()
+    if args.refresh:
+        refresh()
+    else:
+        check_sources()
+    predict(args.model, args.group)

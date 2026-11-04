@@ -1,6 +1,6 @@
 """Stream C : backtest reproduisant le décalage du rendu (cutoff -> 1 jour sauté -> 5 jours prédits).
 
-Entrée : data/processed/dataset.parquet (python -m src.data.build_dataset). Toutes ses features sont décalées
+Entrée : data/processed/dataset_modele.parquet (python -m src.data.export_dataset). Toutes ses features sont décalées
 d'au moins 144 h : pour un cutoff c, les lignes prédites (c + 25 h -> c + 144 h) n'utilisent que des valeurs <= c.
 
 Usage :
@@ -19,7 +19,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-from src.config import DATASET_PATH, GAP_DAYS, HORIZON_DAYS, OUTPUTS_DIR, TARGETS, TZ
+from src.config import DATASET_MODELE_PATH, GAP_DAYS, HORIZON_DAYS, OUTPUTS_DIR, TARGETS, TZ
 from src.data.sources import calendrier
 from src.models.registry import MODELS
 
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     parser.add_argument("--model", default="baseline", choices=list(MODELS))
     parser.add_argument("--n-folds", type=int, default=8, help="nombre de jeudis consécutifs, en remontant depuis la fin")
     parser.add_argument("--cutoffs", nargs="+", help="jeudis explicites (AAAA-MM-JJ), à la place de --n-folds")
-    parser.add_argument("--dataset", default=DATASET_PATH, help="dataset d'entrée (ex. le dataset livré au modèle)")
+    parser.add_argument("--dataset", default=DATASET_MODELE_PATH, help="dataset d'entrée (ex. le dataset livré au modèle)")
     parser.add_argument("--folds", default="regular", choices=["regular", "holiday", "all"],
                         help="regular : --n-folds derniers jeudis ; holiday : jeudis depuis 2022 dont sam->mer contient un férié")
     parser.add_argument("--no-log", action="store_true", help="ne pas écrire dans outputs/backtest_runs.csv")

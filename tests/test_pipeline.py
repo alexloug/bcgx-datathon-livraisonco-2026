@@ -114,3 +114,10 @@ def test_holiday_folds_are_saturday_to_wednesday_with_a_holiday():
         start, end = window(cutoff)
         assert start.tz_convert(TZ).day_of_week == 5 and end.tz_convert(TZ).day_of_week == 2
     assert pd.Timestamp("2025-11-06 23:00", tz=TZ).tz_convert("UTC") in cutoffs   # 11/11/2025
+
+
+def test_predict_fails_clearly_when_a_source_is_missing(monkeypatch, tmp_path):
+    from src import predict
+    monkeypatch.setattr(predict, "DATA_DIR", tmp_path)
+    with pytest.raises(SystemExit, match="Données manquantes"):
+        predict.check_sources()
