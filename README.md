@@ -52,6 +52,8 @@ Dernière exécution de `python -m src.evaluate --model xgb --folds all`, donné
 XGBoost bat la baseline sur les 6 couples arc × cible dans les deux familles de semaines. Les gains les plus faibles sont sur les Champs
 (débit en semaines normales : 9 % ; occupation en semaines fériées : 8 %), l'arc à cible reconstruite. Détail par jour d'horizon et par origine de la cible : sortie de la commande.
 
+Les heures « Barré » (fermetures de rue, dont la cérémonie du 11/11 aux Champs-Elysées) sont exclues de l'entraînement et de l'évaluation : l'erreur des Champs sur ces heures est donc sous-estimée. Correction en cours.
+
 ## Structure
 
 ```
