@@ -25,6 +25,7 @@ VARIABLES = ["temperature_2m", "apparent_temperature", "precipitation", "rain", 
              "weather_code", "is_day"]
 HISTORY_START = 2010
 HISTORICAL_FORECAST_START = 2021
+REFRESH_DAYS = 14   # mise à jour incrémentale : on retélécharge ces derniers jours (ERA5 est révisé avec retard)
 
 
 def fetch(url: str, **params) -> pd.DataFrame:
@@ -51,14 +52,31 @@ def save(df: pd.DataFrame, name: str) -> None:
           f"{df['datetime'].max():%Y-%m-%d %H:%M} UTC -> {path.name}")
 
 
+def refresh(url: str, name: str, start_year: int, end: date) -> pd.DataFrame:
+    """Complète le fichier existant avec les `REFRESH_DAYS` derniers jours ; tout l'historique s'il n'existe pas.
+
+    Open-Meteo limite les appels par heure et compte une longue période comme plusieurs appels : retélécharger
+    17 ans à chaque mise à jour se fait refuser (HTTP 429), y compris le matin du rendu.
+    """
+    path = METEO_DIR / f"{name}.parquet"
+    if not path.exists():
+        return by_year(url, start_year, end)
+    old = load(name)
+    since = (old["datetime"].max() - pd.Timedelta(days=REFRESH_DAYS)).normalize()
+    new = fetch(url, start_date=since.date().isoformat(), end_date=end.isoformat())
+    return pd.concat([old[old["datetime"] < since], new], ignore_index=True)
+
+
 def update() -> None:
     METEO_DIR.mkdir(parents=True, exist_ok=True)
     today = date.today()
-    save(by_year(ARCHIVE_URL, HISTORY_START, today - timedelta(days=1)), "historique")
-    save(by_year(HISTORICAL_FORECAST_URL, HISTORICAL_FORECAST_START, today - timedelta(days=1)), "prevision_historique")
+    # La prévision d'abord : c'est elle qui couvre la fenêtre à prédire.
     forecast = fetch(FORECAST_URL, past_days=7, forecast_days=16)
     forecast["fetched_at"] = pd.Timestamp.now(tz="UTC").floor("h")
     save(forecast, "prevision")
+    save(refresh(ARCHIVE_URL, "historique", HISTORY_START, today - timedelta(days=1)), "historique")
+    save(refresh(HISTORICAL_FORECAST_URL, "prevision_historique", HISTORICAL_FORECAST_START, today - timedelta(days=1)),
+         "prevision_historique")
 
 
 def load(name: str = "historique") -> pd.DataFrame:

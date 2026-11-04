@@ -6,7 +6,8 @@ d'au moins 144 h : pour un cutoff c, les lignes prédites (c + 25 h -> c + 144 h
 Usage :
     python -m src.evaluate --model xgb --n-folds 8
     python -m src.evaluate --model xgb --cutoffs 2024-11-07 2025-11-06     # jeudis, 23:00 heure de Paris
-Sorties : outputs/backtest_<model>.csv (RMSE par arc x cible x jour d'horizon) + résumé à l'écran.
+    python -m src.evaluate --model xgb --dataset data/processed/dataset_modele.parquet
+Sorties : outputs/backtest_<model>.csv (RMSE sur les 24 heures, par arc x cible x jour d'horizon) + résumé à l'écran.
 """
 
 import argparse
@@ -66,9 +67,10 @@ if __name__ == "__main__":
     parser.add_argument("--model", default="baseline", choices=list(MODELS))
     parser.add_argument("--n-folds", type=int, default=8, help="nombre de jeudis consécutifs, en remontant depuis la fin")
     parser.add_argument("--cutoffs", nargs="+", help="jeudis explicites (AAAA-MM-JJ), à la place de --n-folds")
+    parser.add_argument("--dataset", default=DATASET_PATH, help="dataset d'entrée (ex. le dataset livré au modèle)")
     args = parser.parse_args()
 
-    traffic = pd.read_parquet(DATASET_PATH)
+    traffic = pd.read_parquet(args.dataset)
     cutoffs = parse_cutoffs(args.cutoffs) if args.cutoffs else default_cutoffs(traffic, args.n_folds)
     results = backtest(args.model, traffic, cutoffs)
 
@@ -76,7 +78,7 @@ if __name__ == "__main__":
     OUTPUTS_DIR.mkdir(exist_ok=True)
     table.to_csv(OUTPUTS_DIR / f"backtest_{args.model}.csv")
     print(f"Cutoffs : {[c.tz_convert(TZ).strftime('%Y-%m-%d %H:%M') for c in cutoffs]}")
-    print("\nRMSE par arc :")
+    print("\nRMSE par arc (24 heures, comme la note du brief) :")
     print(rmse_table(results, by=("arc",)).round(2).to_string())
     if "source_cible" in results:
         print("\nRMSE par origine de la cible (proxy = Champs-Elysées reconstruit) :")

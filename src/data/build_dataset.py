@@ -92,8 +92,10 @@ def reconstruct_champs(target: pd.DataFrame, proxies: dict[str, pd.DataFrame]) -
             recs.append(apply_ratios(p, ratios))
         stacked = pd.concat(recs, axis=1)
         rebuilt[col] = stacked.mean(axis=1) if spec["methode"] == "moyenne" else stacked.bfill(axis=1).iloc[:, 0]
-    # Une heure n'est reconstruite que si les deux cibles le sont (le couple reste cohérent).
-    can = fill & rebuilt["debit_horaire"].notna() & rebuilt["taux_occupation"].notna()
+    # Une heure n'est reconstruite que si les deux cibles le sont (le couple reste cohérent), et si l'occupation
+    # reconstruite reste possible : ratio x forte occupation du proxy peut dépasser 100 % (6 heures depuis 2021).
+    can = (fill & rebuilt["debit_horaire"].notna() & rebuilt["taux_occupation"].notna()
+           & (rebuilt["taux_occupation"] <= 100))
     for col in TARGETS:
         out.loc[can, col] = rebuilt[col][can]
     out.loc[can, "valide"] = True
