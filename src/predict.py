@@ -61,13 +61,13 @@ def check_sources() -> None:
     missing = [p for p in REQUIRED_SOURCES if not (DATA_DIR / p).exists()]
     if missing:
         raise SystemExit(f"Données manquantes dans data/ : {', '.join(missing)}. "
-                         "Lancer `python -m src.data.update` (ou ajouter --refresh).")
+                         "Lancer `python -m src.data.update`, puis relancer.")
 
 
 def predict(model_name: str, group: str) -> pd.DataFrame:
     if not DATASET_MODELE_PATH.exists():
-        raise SystemExit(f"{DATASET_MODELE_PATH} introuvable : lancer avec --refresh, ou "
-                         "`python -m src.data.build_dataset` puis `python -m src.data.export_dataset`.")
+        raise SystemExit(f"{DATASET_MODELE_PATH} introuvable : lancer avec --refresh (ou, à la main, "
+                         "`python -m src.data.build_dataset` puis `python -m src.data.export_dataset`).")
     traffic = pd.read_parquet(DATASET_MODELE_PATH)
     cutoff = traffic.loc[traffic["is_valid"], "datetime"].max()
     start = pd.Timestamp(SUBMISSION_START, tz=TZ).tz_convert("UTC")
@@ -94,6 +94,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.refresh:
         refresh()
-    else:
-        check_sources()
     predict(args.model, args.group)
