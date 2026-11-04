@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 from src.config import MIN_LAG_HOURS, TZ
+from src import evaluate
 from src.evaluate import holiday_cutoffs, window
 from src.features.build import assert_no_leakage, lag_features, yearly_lag_features
 from src.models.baseline import SeasonalBaseline
@@ -104,7 +105,11 @@ def test_export_checks_block_a_broken_dataset():
         check(df.assign(taux_occupation=df["taux_occupation"] * 30), ["hour"])   # occupation > 100 %
 
 
-def test_holiday_folds_are_saturday_to_wednesday_with_a_holiday():
+def test_holiday_folds_are_saturday_to_wednesday_with_a_holiday(monkeypatch):
+    # Fériés à date fixe écrits en dur : le test ne dépend d'aucune donnée téléchargée.
+    feries = pd.DataFrame({"date": [f"{y}-{md}" for y in range(2021, 2027)
+                                    for md in ("01-01", "05-01", "05-08", "07-14", "08-15", "11-01", "11-11", "12-25")]})
+    monkeypatch.setattr(evaluate.calendrier, "load", lambda name: feries)
     hours = pd.date_range("2021-06-21", "2026-11-12", freq="h", tz="UTC")
     traffic = pd.DataFrame({"datetime": hours, "is_valid": True})
     cutoffs = holiday_cutoffs(traffic)
@@ -121,3 +126,10 @@ def test_predict_fails_clearly_when_a_source_is_missing(monkeypatch, tmp_path):
     monkeypatch.setattr(predict, "DATA_DIR", tmp_path)
     with pytest.raises(SystemExit, match="Données manquantes"):
         predict.check_sources()
+
+
+def test_predict_without_refresh_only_needs_the_exported_dataset(monkeypatch, tmp_path):
+    from src import predict
+    monkeypatch.setattr(predict, "DATASET_MODELE_PATH", tmp_path / "absent.parquet")
+    with pytest.raises(SystemExit, match="introuvable"):
+        predict.predict("xgb", "test")
