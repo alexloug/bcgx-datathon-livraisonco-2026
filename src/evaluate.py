@@ -1,4 +1,4 @@
-"""Stream C : backtest reproduisant le décalage du rendu (cutoff -> 1 jour sauté -> 5 jours prédits).
+"""Backtest reproduisant le décalage du rendu (cutoff -> 1 jour sauté -> 5 jours prédits).
 
 Entrée : data/processed/dataset_modele.parquet (python -m src.data.export_dataset). Toutes ses features sont décalées
 d'au moins 144 h : pour un cutoff c, les lignes prédites (c + 25 h -> c + 144 h) n'utilisent que des valeurs <= c.

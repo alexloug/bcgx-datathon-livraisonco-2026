@@ -1,4 +1,4 @@
-"""Stream B : construction des features, sans fuite par rapport au cutoff.
+"""Construction des features, sans fuite par rapport au cutoff.
 
 Règle : une feature pour l'heure t ne peut utiliser que des valeurs observées à t - MIN_LAG_HOURS
 ou avant (144 h pour la version notée). `assert_no_leakage` le vérifie sur les lags.
@@ -90,12 +90,3 @@ def assert_no_leakage(lags, local: bool = True) -> None:
     if too_short:
         raise ValueError(f"Lags {too_short} : moins de {MIN_LAG_HOURS} h après un changement d'heure, "
                          "donc indisponibles au moment de la prédiction")
-
-
-def make_features(traffic: pd.DataFrame, external: pd.DataFrame | None = None) -> pd.DataFrame:
-    """`traffic` doit contenir aussi les heures à prédire (cibles à NaN) pour que les lags s'y propagent."""
-    traffic = traffic.sort_values(["arc", "datetime"]).reset_index(drop=True)
-    feats = pd.concat([traffic[["arc", "datetime"]], calendar_features(traffic["datetime"]), lag_features(traffic)], axis=1)
-    if external is not None:
-        feats = feats.merge(external, on="datetime", how="left")
-    return feats

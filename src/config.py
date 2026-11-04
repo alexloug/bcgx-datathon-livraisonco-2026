@@ -1,4 +1,4 @@
-"""Constantes partagées par tous les streams (chemins, arcs, horizon de prédiction)."""
+"""Constantes partagées (chemins, arcs, horizon de prédiction)."""
 
 from pathlib import Path
 
