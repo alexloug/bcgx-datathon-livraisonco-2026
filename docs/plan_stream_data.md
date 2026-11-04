@@ -26,7 +26,7 @@ Inventaire détaillé, schémas et limites : [`data/README.md`](../data/README.m
 | Open-Meteo | Météo horaire observée, prévue, et prévisions archivées | 2010 → J+16 | `data/meteo/` |
 | calendrier.api.gouv.fr, data.education.gouv.fr | Jours fériés, vacances zone C | 2006 → 2031 / 2017 → 2028 | `data/calendrier/` |
 | Saisie manuelle + Que faire à Paris | Cérémonies, défilés ; agenda culturel | 2010 → N+1 | `data/evenements/` |
-| Open data Paris | Chantiers perturbants, emprises de chantier | 2024 → à venir | `data/chantiers/` |
+| Open data Paris | Chantiers perturbants, emprises de chantier | 2019 → 2024, puis en cours → à venir | `data/chantiers/` |
 
 Constat rapide sur `traffic_hourly.parquet` (01/10/2025 → 01/11/2026, 9 525 heures par arc) :
 
@@ -53,7 +53,7 @@ Contrainte forte : une feature pour l'heure t n'utilise que des valeurs observé
 | Historique | lags croisés débit ↔ occupation, arcs voisins | recent | non | moyenne |
 | Météo | pluie, température, vent (historique + prévision 07-11/11) | Open-Meteo / Météo-France | non | moyenne |
 | Événements | manifestations, matchs, salons, cérémonies du 11 novembre (Champs-Elysées) | à recenser | non | moyenne |
-| Travaux | chantiers et fermetures sur ou près des arcs | open data Paris (chantiers perturbants) | non | basse |
+| Travaux | chantiers sur chaussée sur ou près des arcs | open data Paris (emprises, archives 2019-2024) | dans le dataset (`chantier_*`), pas dans le modèle : aucun gain en backtest | basse (`docs/determinants_trafic.md` §5) |
 | Régimes | confinement, JO 2024 | `external.parquet` | oui | basse (utile seulement avec les archives) |
 
 > À compléter avec ce qu'on s'est dit en équipe : ajouter une ligne par idée, avec la source envisagée.

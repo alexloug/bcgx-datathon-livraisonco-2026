@@ -18,12 +18,16 @@ from src.config import ARCS, TARGETS
 
 ID_COLS = ["arc", "datetime", "is_valid", "source_cible", "partie"]
 WEEKLY_LAGS = [168, 336, 504]
+# Colonnes du dataset écartées du modèle : météo observée (inconnue à la prédiction) ; chantiers (aucun gain en
+# backtest 2022-2024, docs/determinants_trafic.md). Pour réactiver les chantiers, ne pas imputer leurs NaN
+# (2025-2026 = inconnu, pas « aucun chantier ») : XGBoost les gère nativement.
+EXCLUDED_PREFIXES = ("meteo_obs_", "chantier_")
 
 
 def feature_columns(df: pd.DataFrame) -> list[str]:
-    """Colonnes utilisables comme features : ni identifiants, ni cibles, ni météo observée (inconnue à la prédiction)."""
+    """Colonnes utilisables comme features : ni identifiants, ni cibles, ni `EXCLUDED_PREFIXES`."""
     return [c for c in df.columns
-            if c not in ID_COLS + TARGETS and not c.startswith("meteo_obs_")]
+            if c not in ID_COLS + TARGETS and not c.startswith(EXCLUDED_PREFIXES)]
 
 
 class Preprocessor:

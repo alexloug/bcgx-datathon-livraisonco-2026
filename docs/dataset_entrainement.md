@@ -102,7 +102,18 @@ features avec les seules données disponibles au cutoff**.
 | `meteo_pluie` | `meteo_precipitation` > 0,1 mm/h | Open-Meteo |
 | `meteo_obs_*` | météo **observée** : pour l'analyse uniquement, **ne pas utiliser comme feature** (vide sur la fenêtre) | Open-Meteo |
 | `evenement_fermeture`, `evenement_perturbation`, `evenement` | événement manuel en cours sur la rue de l'arc (journée entière, ou heures si renseignées) : fermeture (cérémonies, défilés, Champs piétons, marathon…), perturbation (grèves, salons), l'un ou l'autre | `data/evenements/evenements_manuels.csv` |
+| `chantier_surface_arc` | log(1 + m²) des emprises sur chaussée à 30 m ou moins du segment de l'arc | chantiers à Paris (archives + courant) |
+| `chantier_surface_150m` | idem à 150 m ou moins (carrefours, rues adjacentes) | idem |
+| `chantier_voirie_150m` | idem, sans les chantiers de bâtiment : voirie et réseaux (eau, gaz, chauffage…) | idem |
+| `chantier_nouveau_7j` | une emprise sur chaussée à 150 m ou moins a commencé il y a moins de 7 jours | idem |
 | `jo_2024`, `post_jo_2024`, `post_30kmh` | indicateurs de régime | — |
+
+Chantiers : les dates des emprises sont connues à l'avance (déclarées pour obtenir l'autorisation), donc
+utilisables sur la fenêtre. Deux réserves. (1) Les archives donnent les dates finales, éventuellement prolongées,
+alors qu'au moment de prédire on n'a que les dates prévues : petite fuite en backtest. (2) Du 01/01/2025 à la
+veille du téléchargement, les emprises sont incomplètes (pas d'archive 2025) : les colonnes `chantier_*` y valent
+NaN. **Les colonnes `chantier_*` ne sont pas utilisées par le modèle** (`EXCLUDED_PREFIXES` dans
+`src/models/preprocessing.py`) : aucun gain en backtest (voir `docs/determinants_trafic.md`, §5).
 
 Les valeurs reconstruites des Champs-Elysées alimentent aussi les lags : sans elles, l'arc n'aurait aucun lag pour la
 fenêtre à prédire.

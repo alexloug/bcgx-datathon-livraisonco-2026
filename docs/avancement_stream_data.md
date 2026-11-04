@@ -39,7 +39,7 @@ Les anciens exports CSV ont été supprimés. Tout vient maintenant de l'open da
 | `data/meteo/` | Open-Meteo : observé, prévision, prévisions archivées | 2010 → J+16 (prévisions archivées depuis 2021) |
 | `data/calendrier/` | jours fériés, vacances scolaires zone C | 2006 → 2031 / 2017 → 2028 |
 | `data/evenements/` | événements saisis à la main (11/11, 8/05, 14/07, Nouvel An) + Que faire à Paris | 2010 → N+1 |
-| `data/chantiers/` | chantiers perturbants et emprises de chantier | pas d'historique exploitable |
+| `data/chantiers/` | chantiers perturbants et emprises de chantier | emprises 2019 → 2024 (archives), puis en cours → à venir |
 
 Points techniques : les archives sont en heure de Paris (l'API en UTC), ce qu'on a vérifié contre l'API heure par heure.
 Les codes d'état des archives sont décodés. L'archive 2021, compressée en Deflate64, est lue via `unzip`.

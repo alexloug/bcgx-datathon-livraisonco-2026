@@ -27,7 +27,7 @@ Convention : `datetime` en UTC (tz-aware), dates calendaires (`date`, `debut`, `
 | `evenements/` | `que_faire_a_paris.parquet` | [Que faire à Paris](https://opendata.paris.fr/explore/dataset/que-faire-a-paris-/) | événements encore en ligne | quotidienne |
 | `chantiers/` | `chantiers_perturbants.parquet` | [Chantiers perturbants](https://opendata.paris.fr/explore/dataset/chantiers-perturbants/) | en cours / à venir | quotidienne |
 | `chantiers/` | `chantiers_a_paris.parquet` | [Chantiers à Paris](https://opendata.paris.fr/explore/dataset/chantiers-a-paris/) | en cours / à venir | quotidienne |
-| `chantiers/` | `chantiers_2024.parquet` | [Historique des chantiers 2024](https://opendata.paris.fr/explore/dataset/historique-chantiers-a-paris-en-2024/) | 2024 | figée |
+| `chantiers/` | `historique/<année>.parquet` | Historique des chantiers à Paris, une archive par an ([2024](https://opendata.paris.fr/explore/dataset/historique-chantiers-a-paris-en-2024/)) | 2019 → 2024 | figée |
 | `processed/` | `dataset.parquet` (+ `dataset.json`) | `src/data/build_dataset.py`, voir `docs/dataset_entrainement.md` | 21/06/2021 → fin de la fenêtre | dérivé |
 | `processed/` | `traffic_hourly.parquet`, `external.parquet` | `src/data/build_traffic.py`, `build_external.py` | — | dérivés |
 
@@ -76,8 +76,16 @@ Les 1ers dimanches piétons ne sont saisis que lorsque la fermeture est visible 
 
 ### chantiers/
 
-Pas d'historique au-delà de 2024. Les coordonnées (`lat`, `lon`) permettent de garder les chantiers proches
-de nos arcs.
+Les archives annuelles 2019-2024 sont publiées sous des identifiants peu parlants (`chantiers-a-paris-copie`,
+`-copie0`… `-copie3`, puis `historique-chantiers-a-paris-en-2024`), avec le même schéma que le jeu courant.
+`chantiers.load_emprises()` assemble archives et jeu courant.
+
+**Trou de couverture** (`chantiers.coverage_gap()`) : il n'y a pas d'archive 2025, et le jeu courant ne contient
+que les chantiers pas encore terminés. Du 01/01/2025 à la veille du téléchargement, on ne connaît donc que les
+chantiers encore en cours : les features chantiers y valent NaN (inconnu), pas 0.
+
+Les coordonnées (`lat`, `lon`) situent chaque emprise par rapport au segment de l'arc (`segment` dans
+`config.ARCS`). `chantiers_perturbants` n'a pas d'historique : il ne sert qu'à lire la situation actuelle.
 
 ## Sources cherchées sans succès (ou laissées de côté)
 

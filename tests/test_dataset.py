@@ -1,9 +1,10 @@
 import numpy as np
 import pandas as pd
 
-from src.config import CHAMPS_PROXIES, TARGETS
+from src.config import ARCS, CHAMPS_PROXIES, TARGETS, TZ
 from src.data import build_dataset
-from src.data.build_dataset import apply_ratios, clean_targets, fit_ratios, reconstruct_champs
+from src.data.build_dataset import (apply_ratios, chantier_features, clean_targets, distance_to_segment, fit_ratios,
+                                    reconstruct_champs)
 from src.data.sources import evenements
 
 HOURS = pd.date_range("2025-01-06", periods=24 * 28, freq="h", tz="UTC")
@@ -74,3 +75,29 @@ def test_event_flags_respect_hours_and_type(monkeypatch):
     assert pd.Timestamp("2025-01-01 04:00") not in set(ferm)
     assert (out["evenement_perturbation"] & conv).sum() == 24 and not (out["evenement_perturbation"] & champs).any()
     assert (out["evenement"] == (out["evenement_fermeture"] | out["evenement_perturbation"])).all()
+
+
+def test_distance_to_segment():
+    seg = ARCS["Convention"]["segment"]
+    (x1, y1), (x2, y2) = seg
+    assert distance_to_segment([x1, (x1 + x2) / 2], [y1, (y1 + y2) / 2], seg).max() < 1
+    assert 100 < distance_to_segment([x1], [y1 + 0.001], seg)[0] < 120     # ~110 m au nord du nœud amont
+
+
+def test_chantier_features_window_and_coverage_gap(monkeypatch):
+    (x1, y1), _ = ARCS["Convention"]["segment"]
+    emprises = pd.DataFrame({
+        "lat": [y1, y1], "lon": [x1, x1 + 0.01],                 # sur l'arc ; à ~730 m (ignorée)
+        "date_debut": ["2024-03-01", "2024-03-01"], "date_fin": ["2024-03-10", "2024-03-10"],
+        "localisation_detail": ["['EMPRISE_CHAUSSEE']"] * 2, "surface": [100.0, 100.0],
+        "chantier_categorie": ["Ville de Paris"] * 2,
+    })
+    monkeypatch.setattr(build_dataset.chantiers, "load_emprises", lambda: emprises)
+    monkeypatch.setattr(build_dataset.chantiers, "coverage_gap",
+                        lambda: (pd.Timestamp("2025-01-01"), pd.Timestamp("2026-11-03")))
+    days = ["2024-02-28 12:00", "2024-03-01 12:00", "2024-03-09 12:00", "2025-06-01 12:00"]
+    df = pd.DataFrame({"arc": "Convention", "datetime": pd.to_datetime(days).tz_localize(TZ).tz_convert("UTC")})
+    out = chantier_features(df)
+    assert np.allclose(out["chantier_surface_arc"].iloc[:3], [0, np.log1p(100), np.log1p(100)])
+    assert out["chantier_nouveau_7j"].iloc[:3].tolist() == [0, 1, 0]
+    assert out.iloc[3].isna().all()                                   # trou de couverture : inconnu, pas 0

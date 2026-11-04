@@ -20,7 +20,8 @@ DATASET_PATH = PROCESSED_DIR / "dataset.parquet"   # src/data/build_dataset.py, 
 TZ = "Europe/Paris"
 TARGETS = ["debit_horaire", "taux_occupation"]
 
-# Arcs du brief : nom attendu dans le CSV de rendu -> identifiant, nœuds amont/aval, rue (cf. STREETS).
+# Arcs du brief : nom attendu dans le CSV de rendu -> identifiant, nœuds amont/aval, rue (cf. STREETS),
+# segment (lon, lat) amont -> aval tiré de `geo_shape` de l'API (sert à situer les chantiers).
 # Champs-Elysées : l'arc 4264 est muet depuis le 19/11/2025, reconstruit par CHAMPS_PROXIES.
 ARCS = {
     "Champs-Elysées": {
@@ -28,18 +29,21 @@ ARCS = {
         "rue": "Champs_Elysees",
         "nd_amont": "Av_Champs_Elysees-Washington",
         "nd_aval": "Av_Champs_Elysees-Berri",
+        "segment": [(2.300995, 48.871777), (2.302450, 48.871295)],
     },
     "Convention": {
         "arc_id": "5671",
         "rue": "Convention",
         "nd_amont": "Lecourbe-Convention",
         "nd_aval": "Convention-Blomet",
+        "segment": [(2.291878, 48.839238), (2.294533, 48.838031)],
     },
     "Saint-Pères": {
         "arc_id": "191",
         "rue": "Sts_Peres",
         "nd_amont": "Sts_Peres-Voltaire",
         "nd_aval": "Sts_Peres-Universite",
+        "segment": [(2.333258, 48.858260), (2.331651, 48.856301)],
     },
 }
 

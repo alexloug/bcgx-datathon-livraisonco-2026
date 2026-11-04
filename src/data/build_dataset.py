@@ -22,7 +22,7 @@ import pandas as pd
 from src.config import (ARCS, CHAMPS_PROXIES, DATASET_PATH, MIN_LAG_HOURS, SUBMISSION_END, SUBMISSION_START,
                         TARGETS, TRAIN_START, TZ)
 from src.data.build_external import EVENTS
-from src.data.sources import calendrier, evenements, meteo, trafic
+from src.data.sources import calendrier, chantiers, evenements, meteo, trafic
 from src.features.build import calendar_features, lag_features, level_features, yearly_lag_features
 
 STUCK_HOURS = 6          # séquence de valeurs identiques (> 0) à partir de laquelle le capteur est jugé figé
@@ -30,6 +30,9 @@ SPIKE_FACTOR = 2         # pic = valeur > SPIKE_FACTOR x quantile 99,9 % de l'ar
 METEO_COLS = ["temperature_2m", "precipitation", "rain", "snowfall", "cloud_cover", "wind_speed_10m", "weather_code"]
 POST_JO = pd.Timestamp("2024-09-09", tz=TZ)
 VILLE_30 = pd.Timestamp("2021-08-30", tz=TZ)
+CHANTIER_ARC_M = 30          # emprise sur la chaussée de l'arc lui-même
+CHANTIER_PROCHE_M = 150      # carrefours et rues adjacentes
+CHANTIER_NOUVEAU_JOURS = 7   # un chantier qui commence perturbe plus qu'un chantier installé
 
 
 # --- Cibles -----------------------------------------------------------------------------------------------
@@ -176,6 +179,54 @@ def event_flags(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+def distance_to_segment(lon, lat, segment) -> np.ndarray:
+    """Distance en mètres de points (lon, lat) à un segment [(lon, lat), (lon, lat)] (approximation locale plane)."""
+    (x1, y1), (x2, y2) = segment
+    kx, ky = 111_320 * np.cos(np.radians(y1)), 110_540
+    px, py = (np.asarray(lon) - x1) * kx, (np.asarray(lat) - y1) * ky
+    vx, vy = (x2 - x1) * kx, (y2 - y1) * ky
+    t = np.clip((px * vx + py * vy) / (vx * vx + vy * vy), 0, 1)
+    return np.hypot(px - t * vx, py - t * vy)
+
+
+def chantier_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Emprises de chantier sur la chaussée autour de l'arc, jour par jour (dates de Paris).
+
+    Surfaces en log(1 + m²). `chantier_voirie_*` exclut les chantiers de bâtiment (bennes, échafaudages) pour ne
+    garder que la voirie et les réseaux. NaN pendant `chantiers.coverage_gap()` : les emprises y sont incomplètes,
+    et un « pas de chantier » serait faux ; XGBoost apprend alors sur 2019-2024.
+    """
+    em = chantiers.load_emprises().dropna(subset=["lat", "lon", "date_debut", "date_fin"])
+    em = em[em["localisation_detail"].str.contains("CHAUSSEE", na=False)]
+    debut = pd.to_datetime(em["date_debut"]).to_numpy()
+    fin = pd.to_datetime(em["date_fin"]).to_numpy()
+    surface = pd.to_numeric(em["surface"], errors="coerce").fillna(0).to_numpy()
+    voirie = (em["chantier_categorie"] != "Tiers (travaux sur bâtiment)").to_numpy()
+    day = df["datetime"].dt.tz_convert(TZ).dt.normalize().dt.tz_localize(None)
+
+    cols = ["chantier_surface_arc", "chantier_surface_150m", "chantier_voirie_150m", "chantier_nouveau_7j"]
+    out = pd.DataFrame(np.nan, index=df.index, columns=cols)
+    for arc, spec in ARCS.items():
+        rows = df["arc"] == arc
+        days = pd.DatetimeIndex(day[rows].unique())
+        dist = distance_to_segment(em["lon"], em["lat"], spec["segment"])
+        near = dist <= CHANTIER_PROCHE_M
+        d = days.to_numpy()[:, None]
+        active = (d >= debut[near]) & (d <= fin[near])
+        recent = active & (d - debut[near] < np.timedelta64(CHANTIER_NOUVEAU_JOURS, "D"))
+        s = surface[near]
+        daily = pd.DataFrame({
+            "chantier_surface_arc": np.log1p((active * (s * (dist[near] <= CHANTIER_ARC_M))).sum(axis=1)),
+            "chantier_surface_150m": np.log1p((active * s).sum(axis=1)),
+            "chantier_voirie_150m": np.log1p((active * (s * voirie[near])).sum(axis=1)),
+            "chantier_nouveau_7j": recent.any(axis=1).astype(float),
+        }, index=days)
+        out.loc[rows] = daily.reindex(day[rows]).to_numpy()
+    gap_start, gap_end = chantiers.coverage_gap()
+    out[((day >= gap_start) & (day <= gap_end)).to_numpy()] = np.nan
+    return out
+
+
 def regime_flags(df: pd.DataFrame) -> pd.DataFrame:
     t = df["datetime"].dt.tz_convert(TZ)
     jo = pd.Series(False, index=df.index)
@@ -214,6 +265,7 @@ def build_dataset(start: str = TRAIN_START, end: str = SUBMISSION_END,
         regime_flags(targets),
     ], axis=1)
     feats = pd.concat([feats, event_flags(feats)], axis=1)
+    feats = pd.concat([feats, chantier_features(feats)], axis=1)
 
     feats = feats[feats["datetime"] >= start_utc].reset_index(drop=True)
     window = (feats["datetime"] >= pd.Timestamp(SUBMISSION_START, tz=TZ)) & (feats["datetime"] <= pd.Timestamp(SUBMISSION_END, tz=TZ))
