@@ -9,13 +9,12 @@ Dernière donnée disponible : le 05/11 à 23 h, puis 1 jour sauté et 5 jours �
 ## Démarrage
 
 ```bash
-pip install -r requirements.txt                              # Python 3.11 ; `unzip` dans le PATH pour les archives trafic
-python -m src.predict --group <groupe> --refresh             # 1. données : mise à jour, dataset, prédiction -> outputs/output_<groupe>.csv
-python -m src.evaluate --model xgb --folds all               # 2. backtest : XGBoost contre la baseline, 8 jeudis récents + 34 semaines fériées
-python -m src.predict --group <groupe>                       # 3. rendu : refait le CSV depuis les données déjà présentes, avec contrôle du format BCG
+pip install -r requirements.txt && python -m src.data.update --history 2021 2025   # 1re fois seulement : archives trafic, ~10 min
+python -m src.predict --group <groupe> --refresh     # rendu : mise à jour, dataset, prédiction, contrôle BCG -> outputs/output_<groupe>.csv (~30 s)
+python -m src.evaluate --model xgb --folds all       # backtest contre la baseline : 8 jeudis + 34 semaines fériées (~20 min ; sans --folds all, 8 jeudis en ~3 min)
 ```
 
-Premier lancement : ajouter `python -m src.data.update --history 2021 2025` pour télécharger les archives annuelles du trafic.
+Python 3.11 ; `unzip` doit être dans le PATH (archives trafic). Sans `--refresh`, `predict` repart du dataset déjà présent.
 Les tests : `python -m pytest -q tests`.
 
 ## Démarche
