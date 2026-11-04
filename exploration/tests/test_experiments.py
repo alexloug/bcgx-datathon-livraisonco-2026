@@ -4,7 +4,7 @@ import pytest
 
 from src.config import ARCS, TARGETS
 from src.evaluate import backtest
-from src.experiments.run import relative_score, select_features
+from exploration.experiments.run import relative_score, select_features
 
 
 def test_relative_score_is_invariant_to_target_units():

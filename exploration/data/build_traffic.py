@@ -3,12 +3,14 @@
 Sortie (une ligne par arc du brief et par heure, index horaire continu) :
     arc, datetime (UTC, tz-aware), debit_horaire, taux_occupation, is_valid, etat_arc
 
-Usage : python -m src.data.build_traffic   (après python -m src.data.update)
+Usage : python -m exploration.data.build_traffic   (après python -m src.data.update)
 """
 
 import pandas as pd
 
-from src.config import ARCS, TRAFFIC_PATH, TARGETS
+from src.config import ARCS, PROCESSED_DIR, TARGETS
+
+TRAFFIC_PATH = PROCESSED_DIR / "traffic_hourly.parquet"
 from src.data.sources import trafic
 
 

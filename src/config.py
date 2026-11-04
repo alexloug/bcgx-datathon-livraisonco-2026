@@ -13,8 +13,6 @@ CHANTIERS_DIR = DATA_DIR / "chantiers"
 PROCESSED_DIR = DATA_DIR / "processed"
 OUTPUTS_DIR = ROOT / "outputs"
 
-TRAFFIC_PATH = PROCESSED_DIR / "traffic_hourly.parquet"
-EXTERNAL_PATH = PROCESSED_DIR / "external.parquet"
 DATASET_PATH = PROCESSED_DIR / "dataset.parquet"   # src/data/build_dataset.py, doc : docs/dataset_entrainement.md
 DATASET_MODELE_PATH = PROCESSED_DIR / "dataset_modele.parquet"   # livré à l'équipe modèle : docs/livraison_dataset.md
 
@@ -75,3 +73,16 @@ MIN_LAG_HOURS = 24 * (GAP_DAYS + HORIZON_DAYS)   # 144 h : tout lag plus court f
 
 SUBMISSION_START = "2026-11-07 00:00"
 SUBMISSION_END = "2026-11-11 23:00"
+
+# Périodes de régime particulier (dates incluses). Le dataset n'utilise que jo_2024 ; confinement sert à exploration/.
+EVENTS = {
+    "confinement": [
+        ("2020-03-17", "2020-05-10"),
+        ("2020-10-30", "2020-12-14"),
+        ("2021-04-03", "2021-05-02"),
+    ],
+    "jo_2024": [
+        ("2024-07-18", "2024-08-11"),   # JO, périmètres de sécurité compris
+        ("2024-08-28", "2024-09-08"),   # Jeux paralympiques
+    ],
+}

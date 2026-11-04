@@ -4,27 +4,16 @@ Colonnes déjà produites : datetime (UTC), ferie, confinement, jo_2024.
 TODO stream A : météo (historique + prévision du 07 au 11/11), vacances scolaires zone C,
 chantiers, autres événements.
 
-Usage : python -m src.data.build_external
+Usage : python -m exploration.data.build_external
 """
 
 from datetime import date, timedelta
 
 import pandas as pd
 
-from src.config import EXTERNAL_PATH, TZ
+from src.config import EVENTS, PROCESSED_DIR, TZ
 
-# Périodes à marquer (dates incluses). À compléter et vérifier par le stream A.
-EVENTS = {
-    "confinement": [
-        ("2020-03-17", "2020-05-10"),
-        ("2020-10-30", "2020-12-14"),
-        ("2021-04-03", "2021-05-02"),
-    ],
-    "jo_2024": [
-        ("2024-07-18", "2024-08-11"),   # JO, périmètres de sécurité compris
-        ("2024-08-28", "2024-09-08"),   # Jeux paralympiques
-    ],
-}
+EXTERNAL_PATH = PROCESSED_DIR / "external.parquet"
 
 
 def easter(year: int) -> date:

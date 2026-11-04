@@ -21,9 +21,8 @@ from datetime import timedelta
 import numpy as np
 import pandas as pd
 
-from src.config import (ARCS, CHAMPS_PROXIES, DATASET_PATH, MIN_LAG_HOURS, SUBMISSION_END, SUBMISSION_START,
+from src.config import (ARCS, CHAMPS_PROXIES, CHANTIERS_DIR, DATASET_PATH, EVENTS, MIN_LAG_HOURS, SUBMISSION_END, SUBMISSION_START,
                         TARGETS, TRAIN_START, TZ)
-from src.data.build_external import EVENTS
 from src.data.sources import calendrier, chantiers, evenements, meteo, trafic
 from src.features.build import calendar_features, lag_features, level_features, yearly_lag_features
 
@@ -318,7 +317,8 @@ def build_dataset(start: str = TRAIN_START, end: str = SUBMISSION_END,
     ], axis=1)
     feats = pd.concat([feats, event_flags(feats)], axis=1)
     feats["vacances_niveau28j"] = level_vacation_share(feats)
-    feats = pd.concat([feats, chantier_features(feats)], axis=1)
+    if (CHANTIERS_DIR / "chantiers_a_paris.parquet").exists():   # optionnel : le modèle n'utilise pas ces colonnes
+        feats = pd.concat([feats, chantier_features(feats)], axis=1)
 
     feats = feats[feats["datetime"] >= start_utc].reset_index(drop=True)
     window = (feats["datetime"] >= pd.Timestamp(SUBMISSION_START, tz=TZ)) & (feats["datetime"] <= pd.Timestamp(SUBMISSION_END, tz=TZ))

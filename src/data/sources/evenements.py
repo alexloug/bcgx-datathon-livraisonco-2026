@@ -60,11 +60,14 @@ def fetch_que_faire() -> pd.DataFrame:
     return df.sort_values("date_start").reset_index(drop=True)
 
 
-def update() -> None:
+def update(que_faire: bool = False) -> None:
+    """Événements manuels ; l'agenda « Que faire à Paris » (non utilisé par le modèle) seulement si `que_faire`."""
     EVENEMENTS_DIR.mkdir(parents=True, exist_ok=True)
     manual = expand_manual(pd.read_csv(MANUAL_PATH, sep=";"), date.today().year + 1)
     manual.to_parquet(EVENEMENTS_DIR / "evenements.parquet", index=False)
     print(f"evenem.  evenements           {len(manual)} occurrences ({manual['nom'].nunique()} événements) -> evenements.parquet")
+    if not que_faire:
+        return
     qfap = fetch_que_faire()
     qfap.to_parquet(EVENEMENTS_DIR / "que_faire_a_paris.parquet", index=False)
     print(f"evenem.  que_faire_a_paris    {len(qfap)} lignes, {qfap['date_start'].min():%Y-%m-%d} -> "

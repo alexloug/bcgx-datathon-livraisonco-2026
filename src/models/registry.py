@@ -1,4 +1,4 @@
-"""Modèles chargés seulement à leur utilisation (dépendances natives facultatives)."""
+"""Modèles disponibles ; chargés à l'utilisation. Gradient boosting alternatif et MLP : voir exploration/."""
 from importlib import import_module
 
 
@@ -10,7 +10,5 @@ def _factory(module, name):
 
 MODELS = {
     "baseline": _factory("src.models.baseline", "SeasonalBaseline"),
-    "gbm": _factory("src.models.gbm", "GBMModel"),
-    "mlp": _factory("src.models.mlp", "MLPModel"),
     "xgb": _factory("src.models.xgb", "XGBModel"),
 }
