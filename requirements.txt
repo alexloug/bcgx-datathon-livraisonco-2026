@@ -4,6 +4,8 @@ matplotlib
 seaborn
 scikit-learn
 lightgbm
+xgboost
+torch
 catboost
 statsmodels
 jupyter

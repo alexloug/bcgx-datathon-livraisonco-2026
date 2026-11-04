@@ -4,38 +4,68 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
-RAW_DIR = DATA_DIR                      # instantané versionné des exports (repli si data/recent est vide)
-RECENT_DIR = DATA_DIR / "recent"        # exports frais de fetch_recent.py (non versionnés)
-ARCHIVES_DIR = DATA_DIR / "archives"    # zips annuels 2010-2025 (non versionnés)
+# Un dossier par source, rempli par src/data/update.py (connecteurs dans src/data/sources/).
+TRAFIC_DIR = DATA_DIR / "trafic"
+METEO_DIR = DATA_DIR / "meteo"
+CALENDRIER_DIR = DATA_DIR / "calendrier"
+EVENEMENTS_DIR = DATA_DIR / "evenements"
+CHANTIERS_DIR = DATA_DIR / "chantiers"
 PROCESSED_DIR = DATA_DIR / "processed"
 OUTPUTS_DIR = ROOT / "outputs"
 
 TRAFFIC_PATH = PROCESSED_DIR / "traffic_hourly.parquet"
 EXTERNAL_PATH = PROCESSED_DIR / "external.parquet"
+DATASET_PATH = PROCESSED_DIR / "dataset.parquet"   # src/data/build_dataset.py, doc : docs/dataset_entrainement.md
+DATASET_MODELE_PATH = PROCESSED_DIR / "dataset_modele.parquet"   # livré à l'équipe modèle : docs/livraison_dataset.md
 
 TZ = "Europe/Paris"
 TARGETS = ["debit_horaire", "taux_occupation"]
 
-# Arcs du brief : nom attendu dans le CSV de rendu -> fichier brut + nœuds amont/aval.
-# Champs-Elysées : l'arc 4264 est muet depuis le 19/11/2025. Proxys possibles
-# sur la même avenue : 4401 et 4402 (à trancher au tutorat du 05/11).
+# Arcs du brief : nom attendu dans le CSV de rendu -> identifiant, nœuds amont/aval, rue (cf. STREETS),
+# segment (lon, lat) amont -> aval tiré de `geo_shape` de l'API (sert à situer les chantiers).
+# Champs-Elysées : l'arc 4264 est muet depuis le 19/11/2025, reconstruit par CHAMPS_PROXIES.
 ARCS = {
     "Champs-Elysées": {
-        "raw_file": "champs_elysees.csv",
+        "arc_id": "4264",
+        "rue": "Champs_Elysees",
         "nd_amont": "Av_Champs_Elysees-Washington",
         "nd_aval": "Av_Champs_Elysees-Berri",
+        "segment": [(2.300995, 48.871777), (2.302450, 48.871295)],
     },
     "Convention": {
-        "raw_file": "convention.csv",
+        "arc_id": "5671",
+        "rue": "Convention",
         "nd_amont": "Lecourbe-Convention",
         "nd_aval": "Convention-Blomet",
+        "segment": [(2.291878, 48.839238), (2.294533, 48.838031)],
     },
     "Saint-Pères": {
-        "raw_file": "saints_peres.csv",
+        "arc_id": "191",
+        "rue": "Sts_Peres",
         "nd_amont": "Sts_Peres-Voltaire",
         "nd_aval": "Sts_Peres-Universite",
+        "segment": [(2.333258, 48.858260), (2.331651, 48.856301)],
     },
 }
+
+# On télécharge toutes les rues des 3 arcs (proxys, arcs voisins) : sous-chaînes cherchées dans `libelle`.
+# Les libellés varient selon les années (ex. AV_Champs_Elysees / Av_des_Champs_Elysees).
+STREETS = ["Champs_Elysees", "Sts_Peres", "Convention"]
+
+# Proxys de l'arc 4264, même sens de circulation, en aval (notebook 03) :
+# 4274 Berri -> La Boétie (tronçon suivant), 4281 Colisée -> Rond-Point. Par cible, ordre de préférence,
+# et « moyenne » = moyenne des reconstructions disponibles. 4267 (amont) est muet de 2021 à 2025 et depuis 08/2026.
+CHAMPS_PROXIES = {
+    "debit_horaire": {"arcs": ["4274", "4281"], "methode": "premier"},
+    "taux_occupation": {"arcs": ["4274", "4281"], "methode": "moyenne"},
+}
+
+# Début du dataset d'entraînement : fin du couvre-feu Covid (20/06/2021). Les prévisions météo archivées
+# (backtest) commencent en 2021 ; avant, ruptures de régime sur Champs-Elysées (2019) et Convention (2020).
+TRAIN_START = "2021-06-21 00:00"   # heure de Paris
+
+# Point météo : centre de Paris (les 3 arcs sont à moins de 5 km les uns des autres).
+PARIS_LAT, PARIS_LON = 48.8566, 2.3522
 
 # Horizon de la version notée : données publiées en J-1, téléchargées le 06/11,
 # donc dernière heure connue le 05/11 23:00 ; on prédit le 07/11 00:00 -> 11/11 23:00.

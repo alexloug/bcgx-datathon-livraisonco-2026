@@ -1,7 +1,7 @@
 """Stream C : produit le CSV de rendu (07/11 00:00 -> 11/11 23:00) et le vérifie avec le test du brief.
 
 Usage : python -m src.predict --model baseline --group <nom_du_groupe>
-Le cutoff par défaut est la dernière heure disponible dans traffic_hourly.parquet.
+Entrée : data/processed/dataset.parquet. Le cutoff est sa dernière heure observée (cible valide).
 """
 
 import argparse
@@ -9,7 +9,7 @@ from datetime import datetime
 
 import pandas as pd
 
-from src.config import ARCS, OUTPUTS_DIR, SUBMISSION_END, SUBMISSION_START, TARGETS, TRAFFIC_PATH, TZ
+from src.config import ARCS, DATASET_PATH, OUTPUTS_DIR, SUBMISSION_END, SUBMISSION_START, TARGETS, TZ
 from src.models.registry import MODELS
 
 OUTPUT_COLUMNS = {"arc": object, "datetime": object, "debit_horaire": float, "taux_occupation": float}
@@ -43,8 +43,8 @@ if __name__ == "__main__":
     parser.add_argument("--group", required=True, help="nom du groupe, utilisé dans output_<groupe>.csv")
     args = parser.parse_args()
 
-    traffic = pd.read_parquet(TRAFFIC_PATH)
-    cutoff = traffic["datetime"].max()
+    traffic = pd.read_parquet(DATASET_PATH)
+    cutoff = traffic.loc[traffic["is_valid"], "datetime"].max()
     start = pd.Timestamp(SUBMISSION_START, tz=TZ).tz_convert("UTC")
     end = pd.Timestamp(SUBMISSION_END, tz=TZ).tz_convert("UTC")
     print(f"Cutoff : {cutoff.tz_convert(TZ):%Y-%m-%d %H:%M} (Paris), horizon max {(end - cutoff) / pd.Timedelta(hours=1):.0f} h")
