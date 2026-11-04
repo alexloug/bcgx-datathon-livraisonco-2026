@@ -154,15 +154,26 @@ def weather(datetimes: pd.Series) -> pd.DataFrame:
     return out
 
 
-def event_flags(df: pd.DataFrame) -> pd.Series:
-    """Événement manuel en cours sur la rue de l'arc (cérémonies, défilés…)."""
+def event_flags(df: pd.DataFrame) -> pd.DataFrame:
+    """Événement manuel en cours sur la rue de l'arc, à l'heure près, séparé par type.
+
+    `evenement_fermeture` : avenue fermée ou vidée (cérémonies, défilés, Champs piétons…) ;
+    `evenement_perturbation` : trafic reporté ou chargé (grèves, salons) ; `evenement` : l'un ou l'autre.
+    """
     ev = evenements.load("evenements")
-    day = df["datetime"].dt.tz_convert(TZ).dt.normalize().dt.tz_localize(None)
+    for col, default in evenements.DEFAULTS.items():   # parquet généré avant l'ajout des colonnes
+        if col not in ev:
+            ev[col] = default
+    hour = df["datetime"].dt.tz_convert(TZ).dt.tz_localize(None).dt.floor("h")
     rue = df["arc"].map({arc: spec["rue"] for arc, spec in ARCS.items()})
-    flag = pd.Series(False, index=df.index)
+    flags = {t: pd.Series(False, index=df.index) for t in evenements.TYPES}
     for r in ev.itertuples():
-        flag |= (day >= pd.Timestamp(r.debut)) & (day <= pd.Timestamp(r.fin)) & rue.apply(lambda x: x in r.rues)
-    return flag
+        start = pd.Timestamp(r.debut) + pd.Timedelta(hours=int(r.heure_debut))
+        end = pd.Timestamp(r.fin) + pd.Timedelta(hours=int(r.heure_fin))
+        flags[r.type] |= (hour >= start) & (hour <= end) & rue.apply(lambda x: x in r.rues)
+    out = pd.DataFrame({f"evenement_{t}": f for t, f in flags.items()}, index=df.index)
+    out.insert(0, "evenement", out.any(axis=1))
+    return out
 
 
 def regime_flags(df: pd.DataFrame) -> pd.DataFrame:
@@ -202,7 +213,7 @@ def build_dataset(start: str = TRAIN_START, end: str = SUBMISSION_END,
         weather(targets["datetime"]),
         regime_flags(targets),
     ], axis=1)
-    feats["evenement"] = event_flags(feats)
+    feats = pd.concat([feats, event_flags(feats)], axis=1)
 
     feats = feats[feats["datetime"] >= start_utc].reset_index(drop=True)
     window = (feats["datetime"] >= pd.Timestamp(SUBMISSION_START, tz=TZ)) & (feats["datetime"] <= pd.Timestamp(SUBMISSION_END, tz=TZ))

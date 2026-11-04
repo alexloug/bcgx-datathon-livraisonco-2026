@@ -67,6 +67,11 @@ Les ponts et les veilles de fériés se dérivent de `jours_feries` dans la phas
 `evenements_manuels.csv` liste les événements qui ferment ou chargent nos rues et qu'aucune source ouverte
 ne publie. `recurrence` vaut `annuelle` (même date chaque année) ou `ponctuelle`. Mettre `a_verifier = oui`
 en cas de doute. Les exceptions ne sont pas encore saisies (défilé du 14 juillet 2020 annulé, etc.).
+Colonnes facultatives : `type` (`fermeture`, par défaut, ou `perturbation`) et `heure_debut` / `heure_fin`
+(heures de Paris, fin incluse, par défaut 0 / 23 : toute la journée). Les heures ne sont pas renseignées pour
+l'instant : au backtest des 11/11 2023-2025, marquer seulement les heures de fermeture dégradait les Champs-Elysées
+(RMSE débit 254 -> 272), car ces heures sont « Barré » donc absentes de l'entraînement.
+Les 1ers dimanches piétons ne sont saisis que lorsque la fermeture est visible dans les données (pas tous les mois).
 « Que faire à Paris » contient surtout des petits événements culturels et pas d'historique fiable : à évaluer.
 
 ### chantiers/

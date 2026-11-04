@@ -1,72 +1,72 @@
-nom;date_debut;date_fin;recurrence;rues;source;a_verifier
-Cérémonie du 11 novembre (Arc de Triomphe);2010-11-11;2010-11-11;annuelle;Champs_Elysees;fermeture habituelle du haut des Champs-Elysées le matin;non
-Commémoration du 8 mai (Arc de Triomphe);2010-05-08;2010-05-08;annuelle;Champs_Elysees;fermeture habituelle du haut des Champs-Elysées le matin;non
-Défilé du 14 juillet;2010-07-14;2010-07-14;annuelle;Champs_Elysees;défilé militaire sur l'avenue;non
-Nouvel An sur les Champs-Elysées;2010-12-31;2011-01-01;annuelle;Champs_Elysees;avenue piétonne la nuit du 31/12;non
-Champs-Elysées piétons (1er dimanche);2020-06-07;2020-06-07;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2020-07-05;2020-07-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2020-08-02;2020-08-02;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2021-06-06;2021-06-06;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2021-07-04;2021-07-04;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2021-09-05;2021-09-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2022-02-06;2022-02-06;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2022-04-03;2022-04-03;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2022-06-05;2022-06-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2022-10-02;2022-10-02;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2022-12-04;2022-12-04;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2023-02-05;2023-02-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2023-03-05;2023-03-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2023-04-02;2023-04-02;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2023-05-07;2023-05-07;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2023-06-04;2023-06-04;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2023-07-02;2023-07-02;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2023-08-06;2023-08-06;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2023-10-01;2023-10-01;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2023-12-03;2023-12-03;ponctuelle;Champs_Elysees;1er dimanche, fermeture probable mais un capteur ne baisse pas assez (cas limite);oui
-Champs-Elysées piétons (1er dimanche);2024-03-03;2024-03-03;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2024-04-07;2024-04-07;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2024-05-05;2024-05-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture probable mais un capteur ne baisse pas assez (cas limite);oui
-Champs-Elysées piétons (1er dimanche);2024-10-06;2024-10-06;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2024-12-01;2024-12-01;ponctuelle;Champs_Elysees;1er dimanche, fermeture probable mais un capteur ne baisse pas assez (cas limite);oui
-Champs-Elysées piétons (1er dimanche);2025-03-02;2025-03-02;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2025-04-06;2025-04-06;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2025-05-04;2025-05-04;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2025-06-01;2025-06-01;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2025-10-05;2025-10-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2025-12-07;2025-12-07;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2026-03-01;2026-03-01;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2026-04-05;2026-04-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2026-05-03;2026-05-03;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2026-06-07;2026-06-07;ponctuelle;Champs_Elysees;1er dimanche, fermeture probable mais un capteur ne baisse pas assez (cas limite);oui
-Champs-Elysées piétons (1er dimanche);2026-07-05;2026-07-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2026-09-06;2026-09-06;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Champs-Elysées piétons (1er dimanche);2026-10-04;2026-10-04;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non
-Départ du marathon de Paris;2022-04-03;2022-04-03;ponctuelle;Champs_Elysees;départ sur l'avenue le matin (Europe 1, Orange Sport, Sortiraparis);non
-Départ du marathon de Paris;2023-04-02;2023-04-02;ponctuelle;Champs_Elysees;départ sur l'avenue le matin (Europe 1, Orange Sport, Sortiraparis);non
-Départ du marathon de Paris;2024-04-07;2024-04-07;ponctuelle;Champs_Elysees;départ sur l'avenue le matin (Europe 1, Orange Sport, Sortiraparis);non
-Départ du marathon de Paris;2025-04-13;2025-04-13;ponctuelle;Champs_Elysees;départ sur l'avenue le matin (Europe 1, Orange Sport, Sortiraparis);non
-Départ du marathon de Paris;2026-04-12;2026-04-12;ponctuelle;Champs_Elysees;départ sur l'avenue le matin (Europe 1, Orange Sport, Sortiraparis);non
-Arrivée du Tour de France;2026-07-26;2026-07-26;ponctuelle;Champs_Elysees;dernière étape, arrivée sur l'avenue en soirée (Sortiraparis);non
-Victoire du PSG en Ligue des champions;2025-05-31;2025-05-31;ponctuelle;Champs_Elysees;foule sur l'avenue la nuit de la finale;non
-Défilé du PSG (Ligue des champions);2025-06-01;2025-06-01;ponctuelle;Champs_Elysees;défilé en bus sur l'avenue 17h-18h30 (Sortiraparis);non
-VivaTech sur les Champs-Elysées;2026-06-14;2026-06-14;ponctuelle;Champs_Elysees;avenue fermée 12h-18h entre Arsène-Houssaye et Berri (Affiches Parisiennes);non
-Grève et manifestation retraites 2023;2023-01-19;2023-01-19;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non
-Grève et manifestation retraites 2023;2023-01-31;2023-01-31;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non
-Grève et manifestation retraites 2023;2023-02-07;2023-02-07;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non
-Grève et manifestation retraites 2023;2023-02-11;2023-02-11;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non
-Grève et manifestation retraites 2023;2023-02-16;2023-02-16;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non
-Grève et manifestation retraites 2023;2023-03-07;2023-03-07;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non
-Grève et manifestation retraites 2023;2023-03-11;2023-03-11;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non
-Grève et manifestation retraites 2023;2023-03-15;2023-03-15;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non
-Grève et manifestation retraites 2023;2023-03-23;2023-03-23;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non
-Grève et manifestation retraites 2023;2023-03-28;2023-03-28;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non
-Grève et manifestation retraites 2023;2023-04-06;2023-04-06;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non
-Grève et manifestation retraites 2023;2023-04-13;2023-04-13;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non
-Grève et manifestation retraites 2023;2023-05-01;2023-05-01;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non
-Grève et manifestation retraites 2023;2023-06-06;2023-06-06;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non
-Grève et manifestation intersyndicale;2026-11-05;2026-11-05;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale CGT CFDT FO Unsa FSU (Sortiraparis, NVO);non
-Mondial de l'Auto (Paris Expo Porte de Versailles);2024-10-14;2024-10-20;ponctuelle;Convention;dates sûres (mondial.paris), effet sur Convention non vérifié;non
-Mondial de l'Auto (Paris Expo Porte de Versailles);2026-10-12;2026-10-18;ponctuelle;Convention;dates sûres (mondial.paris), effet sur Convention non vérifié;non
-Foire de Paris (Paris Expo Porte de Versailles);2024-05-01;2024-05-12;ponctuelle;Convention;dates sûres (Sortiraparis), effet sur Convention non vérifié;non
-Foire de Paris (Paris Expo Porte de Versailles);2025-04-30;2025-05-11;ponctuelle;Convention;dates sûres (Sortiraparis), effet sur Convention non vérifié;non
-Foire de Paris (Paris Expo Porte de Versailles);2026-04-30;2026-05-11;ponctuelle;Convention;dates sûres (Sortiraparis), effet sur Convention non vérifié;non
+nom;date_debut;date_fin;recurrence;rues;source;a_verifier;type
+Cérémonie du 11 novembre (Arc de Triomphe);2010-11-11;2010-11-11;annuelle;Champs_Elysees;fermeture habituelle du haut des Champs-Elysées le matin;non;fermeture
+Commémoration du 8 mai (Arc de Triomphe);2010-05-08;2010-05-08;annuelle;Champs_Elysees;fermeture habituelle du haut des Champs-Elysées le matin;non;fermeture
+Défilé du 14 juillet;2010-07-14;2010-07-14;annuelle;Champs_Elysees;défilé militaire sur l'avenue;non;fermeture
+Nouvel An sur les Champs-Elysées;2010-12-31;2011-01-01;annuelle;Champs_Elysees;avenue piétonne la nuit du 31/12;non;fermeture
+Champs-Elysées piétons (1er dimanche);2020-06-07;2020-06-07;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2020-07-05;2020-07-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2020-08-02;2020-08-02;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2021-06-06;2021-06-06;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2021-07-04;2021-07-04;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2021-09-05;2021-09-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2022-02-06;2022-02-06;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2022-04-03;2022-04-03;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2022-06-05;2022-06-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2022-10-02;2022-10-02;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2022-12-04;2022-12-04;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2023-02-05;2023-02-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2023-03-05;2023-03-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2023-04-02;2023-04-02;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2023-05-07;2023-05-07;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2023-06-04;2023-06-04;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2023-07-02;2023-07-02;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2023-08-06;2023-08-06;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2023-10-01;2023-10-01;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2023-12-03;2023-12-03;ponctuelle;Champs_Elysees;1er dimanche, fermeture probable mais un capteur ne baisse pas assez (cas limite);oui;fermeture
+Champs-Elysées piétons (1er dimanche);2024-03-03;2024-03-03;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2024-04-07;2024-04-07;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2024-05-05;2024-05-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture probable mais un capteur ne baisse pas assez (cas limite);oui;fermeture
+Champs-Elysées piétons (1er dimanche);2024-10-06;2024-10-06;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2024-12-01;2024-12-01;ponctuelle;Champs_Elysees;1er dimanche, fermeture probable mais un capteur ne baisse pas assez (cas limite);oui;fermeture
+Champs-Elysées piétons (1er dimanche);2025-03-02;2025-03-02;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2025-04-06;2025-04-06;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2025-05-04;2025-05-04;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2025-06-01;2025-06-01;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2025-10-05;2025-10-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2025-12-07;2025-12-07;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2026-03-01;2026-03-01;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2026-04-05;2026-04-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2026-05-03;2026-05-03;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2026-06-07;2026-06-07;ponctuelle;Champs_Elysees;1er dimanche, fermeture probable mais un capteur ne baisse pas assez (cas limite);oui;fermeture
+Champs-Elysées piétons (1er dimanche);2026-07-05;2026-07-05;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2026-09-06;2026-09-06;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Champs-Elysées piétons (1er dimanche);2026-10-04;2026-10-04;ponctuelle;Champs_Elysees;1er dimanche, fermeture vue dans les données (débit 11h-16h < 0,6 x autres dimanches du mois);non;fermeture
+Départ du marathon de Paris;2022-04-03;2022-04-03;ponctuelle;Champs_Elysees;départ sur l'avenue le matin (Europe 1, Orange Sport, Sortiraparis);non;fermeture
+Départ du marathon de Paris;2023-04-02;2023-04-02;ponctuelle;Champs_Elysees;départ sur l'avenue le matin (Europe 1, Orange Sport, Sortiraparis);non;fermeture
+Départ du marathon de Paris;2024-04-07;2024-04-07;ponctuelle;Champs_Elysees;départ sur l'avenue le matin (Europe 1, Orange Sport, Sortiraparis);non;fermeture
+Départ du marathon de Paris;2025-04-13;2025-04-13;ponctuelle;Champs_Elysees;départ sur l'avenue le matin (Europe 1, Orange Sport, Sortiraparis);non;fermeture
+Départ du marathon de Paris;2026-04-12;2026-04-12;ponctuelle;Champs_Elysees;départ sur l'avenue le matin (Europe 1, Orange Sport, Sortiraparis);non;fermeture
+Arrivée du Tour de France;2026-07-26;2026-07-26;ponctuelle;Champs_Elysees;dernière étape, arrivée sur l'avenue en soirée (Sortiraparis);non;fermeture
+Victoire du PSG en Ligue des champions;2025-05-31;2025-05-31;ponctuelle;Champs_Elysees;foule sur l'avenue la nuit de la finale;non;fermeture
+Défilé du PSG (Ligue des champions);2025-06-01;2025-06-01;ponctuelle;Champs_Elysees;défilé en bus sur l'avenue 17h-18h30 (Sortiraparis);non;fermeture
+VivaTech sur les Champs-Elysées;2026-06-14;2026-06-14;ponctuelle;Champs_Elysees;avenue fermée 12h-18h entre Arsène-Houssaye et Berri (Affiches Parisiennes);non;fermeture
+Grève et manifestation retraites 2023;2023-01-19;2023-01-19;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non;perturbation
+Grève et manifestation retraites 2023;2023-01-31;2023-01-31;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non;perturbation
+Grève et manifestation retraites 2023;2023-02-07;2023-02-07;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non;perturbation
+Grève et manifestation retraites 2023;2023-02-11;2023-02-11;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non;perturbation
+Grève et manifestation retraites 2023;2023-02-16;2023-02-16;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non;perturbation
+Grève et manifestation retraites 2023;2023-03-07;2023-03-07;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non;perturbation
+Grève et manifestation retraites 2023;2023-03-11;2023-03-11;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non;perturbation
+Grève et manifestation retraites 2023;2023-03-15;2023-03-15;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non;perturbation
+Grève et manifestation retraites 2023;2023-03-23;2023-03-23;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non;perturbation
+Grève et manifestation retraites 2023;2023-03-28;2023-03-28;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non;perturbation
+Grève et manifestation retraites 2023;2023-04-06;2023-04-06;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non;perturbation
+Grève et manifestation retraites 2023;2023-04-13;2023-04-13;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non;perturbation
+Grève et manifestation retraites 2023;2023-05-01;2023-05-01;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non;perturbation
+Grève et manifestation retraites 2023;2023-06-06;2023-06-06;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale interprofessionnelle (evous.fr);non;perturbation
+Grève et manifestation intersyndicale;2026-11-05;2026-11-05;ponctuelle;Champs_Elysees,Convention,Sts_Peres;journée nationale CGT CFDT FO Unsa FSU (Sortiraparis, NVO);non;perturbation
+Mondial de l'Auto (Paris Expo Porte de Versailles);2024-10-14;2024-10-20;ponctuelle;Convention;dates sûres (mondial.paris), effet sur Convention non vérifié;non;perturbation
+Mondial de l'Auto (Paris Expo Porte de Versailles);2026-10-12;2026-10-18;ponctuelle;Convention;dates sûres (mondial.paris), effet sur Convention non vérifié;non;perturbation
+Foire de Paris (Paris Expo Porte de Versailles);2024-05-01;2024-05-12;ponctuelle;Convention;dates sûres (Sortiraparis), effet sur Convention non vérifié;non;perturbation
+Foire de Paris (Paris Expo Porte de Versailles);2025-04-30;2025-05-11;ponctuelle;Convention;dates sûres (Sortiraparis), effet sur Convention non vérifié;non;perturbation
+Foire de Paris (Paris Expo Porte de Versailles);2026-04-30;2026-05-11;ponctuelle;Convention;dates sûres (Sortiraparis), effet sur Convention non vérifié;non;perturbation
