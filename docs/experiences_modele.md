@@ -72,3 +72,36 @@ Lecture : sur les 8 jeudis, aucun effet (une seule semaine touchée par le chang
 du 11/11, léger mieux sur la fenêtre entière, mais mélangé sur le 11/11 seul (Champs-Elysées se dégrade de 3 %,
 Saint-Pères s'améliore de 4 %) : ces écarts sont dans le bruit d'un échantillon de 150 heures. La correction
 est retenue parce qu'elle est exacte (le lag pointe la bonne heure) et non pour un gain mesuré.
+
+## Étape 2 — Backtest enrichi (`src/evaluate.py`)
+
+Ajouts, sans toucher à `--cutoffs` ni à la RMSE par `source_cible` : `--folds regular|holiday|all` (défaut
+`regular`, comme avant) ; la baseline tourne automatiquement sur les mêmes cutoffs, et seules les heures où le
+modèle et la baseline ont une prédiction sont gardées ; gain en % par type de fold et par arc ; une ligne par
+run x fold x arc x cible ajoutée à `outputs/backtest_runs.csv`.
+
+Semaines `holiday` : 34 jeudis depuis 2022 dont la fenêtre samedi -> mercredi contient un férié (calculé depuis
+`data/calendrier/jours_feries`). Un férié tombant un jeudi ou un vendredi n'est donc jamais dans une fenêtre
+(ex. le 11/11/2022, un vendredi). `--folds all` = 8 jeudis `regular` + 34 `holiday`.
+
+XGBoost contre baseline, après correction des lags (`python -m src.evaluate --model xgb --folds all`) :
+
+| Fold | Arc | Débit XGB / base (gain) | Occupation XGB / base (gain) | Heures |
+|---|---|---|---|---|
+| regular | Champs-Elysées* | 182,6 / 192,8 (+5 %) | 9,43 / 10,88 (+13 %) | 902 |
+| regular | Convention | 65,9 / 82,0 (+20 %) | 2,53 / 2,88 (+12 %) | 935 |
+| regular | Saint-Pères | 102,0 / 159,8 (+36 %) | 2,91 / 3,72 (+22 %) | 933 |
+| holiday | Champs-Elysées | 177,7 / 224,8 (+21 %) | 9,39 / 10,25 (+8 %) | 3 695 |
+| holiday | Convention | 78,2 / 121,6 (+36 %) | 2,94 / 3,32 (+11 %) | 2 336 |
+| holiday | Saint-Pères | 72,1 / 110,6 (+35 %) | 1,85 / 2,41 (+23 %) | 3 060 |
+
+\* Cible partiellement reconstruite par proxy. Le détail mesure / proxy est affiché par `evaluate` (RMSE par origine
+de la cible) : sur toutes les semaines, le débit des Champs est à 229,6 en mesure contre 189,5 en proxy pour la baseline.
+
+XGBoost bat la baseline sur les deux familles, pour les 3 arcs et les 2 cibles. Par fold, il fait mieux sur 68 des
+82 couples (fold x arc) pour le débit des semaines fériées.
+
+Limites : (1) les folds de 2022 sont appris sur 6 à 12 mois d'historique seulement (le dataset commence en
+06/2021), donc plus difficiles que ceux de 2025 ; (2) Convention a moins d'heures (trous de capteur) ; (3) le
+« jour d'horizon 6 » affiché est un artefact : une semaine contenant le retour à l'heure d'hiver compte 121 h
+réelles (défaut préexistant du calcul d'`horizon_day`, non corrigé).

@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from src.config import MIN_LAG_HOURS, TZ
-from src.evaluate import window
+from src.evaluate import holiday_cutoffs, window
 from src.features.build import assert_no_leakage, lag_features, yearly_lag_features
 from src.models.baseline import SeasonalBaseline
 from src.predict import check_submission, to_submission
@@ -82,3 +82,15 @@ def test_baseline_submission_format():
     end = pd.Timestamp("2026-11-11 23:00", tz=TZ).tz_convert("UTC")
     pred = SeasonalBaseline().fit(traffic, cutoff).predict(traffic, cutoff, start, end)
     check_submission(to_submission(pred))
+
+
+def test_holiday_folds_are_saturday_to_wednesday_with_a_holiday():
+    hours = pd.date_range("2021-06-21", "2026-11-12", freq="h", tz="UTC")
+    traffic = pd.DataFrame({"datetime": hours, "is_valid": True})
+    cutoffs = holiday_cutoffs(traffic)
+    assert len(cutoffs) > 20
+    for cutoff in cutoffs:
+        assert cutoff.tz_convert(TZ).day_of_week == 3 and cutoff.tz_convert(TZ).hour == 23
+        start, end = window(cutoff)
+        assert start.tz_convert(TZ).day_of_week == 5 and end.tz_convert(TZ).day_of_week == 2
+    assert pd.Timestamp("2025-11-06 23:00", tz=TZ).tz_convert("UTC") in cutoffs   # 11/11/2025
