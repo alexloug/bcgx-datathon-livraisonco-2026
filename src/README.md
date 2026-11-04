@@ -10,7 +10,7 @@ Code du pipeline, organisé par stream. Toutes les commandes se lancent depuis l
 | `data/build_dataset.py` | A | Dataset unifié cibles + features → `data/processed/dataset.parquet` (doc : `docs/dataset_entrainement.md`) |
 | `data/build_traffic.py` | A | `data/trafic/` (archives + API) → `data/processed/traffic_hourly.parquet` |
 | `data/build_external.py` | A | Fériés, confinements, JO → `data/processed/external.parquet` (météo, vacances à ajouter) |
-| `features/build.py` | B | Features calendaires et lags ≥ 144 h, refus des lags plus courts |
+| `features/build.py` | B | Features calendaires et lags en heure de Paris (jours entiers, ≥ 168 h), refus des lags plus courts |
 | `models/base.py` | B | Interface `fit(traffic, cutoff)` / `predict(traffic, cutoff, start, end)` |
 | `models/preprocessing.py` | B | Sélection des features, retraitement des NaN, encodage (appris ≤ cutoff) |
 | `models/xgb.py` | B | XGBoost, un modèle par cible (`--model xgb`), doc : `docs/modele_xgboost.md` |
@@ -38,5 +38,6 @@ Elle est alors utilisable avec `--model <nom>` dans `evaluate.py` et `predict.py
 
 - `datetime` en UTC (tz-aware) partout ; conversion en heure de Paris seulement pour le CSV de rendu.
 - Une feature pour l'heure t n'utilise que des données à t - 144 h ou avant.
+- Les lags se calculent en heure de Paris (même heure locale, n jours avant), pas par décalage sur la grille UTC.
 - Les données téléchargées ou générées (`data/**/*.parquet`, `outputs/models/`) ne sont pas versionnées.
 - macOS : LightGBM et XGBoost ont besoin d'OpenMP (`brew install libomp`).

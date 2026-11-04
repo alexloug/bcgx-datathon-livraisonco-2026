@@ -3,7 +3,7 @@ import pytest
 
 from src.config import MIN_LAG_HOURS, TZ
 from src.evaluate import window
-from src.features.build import assert_no_leakage
+from src.features.build import assert_no_leakage, lag_features, yearly_lag_features
 from src.models.baseline import SeasonalBaseline
 from src.predict import check_submission, to_submission
 
@@ -20,6 +20,55 @@ def test_short_lags_are_rejected():
     with pytest.raises(ValueError):
         assert_no_leakage([24])
     assert_no_leakage([168])
+
+
+def test_short_or_fractional_lags_are_rejected():
+    with pytest.raises(ValueError):
+        assert_no_leakage([144])    # 143 h réelles après le passage à l'heure d'été
+    with pytest.raises(ValueError):
+        assert_no_leakage([170])    # pas un nombre entier de jours
+
+
+def _traffic(start, end, arc="Convention"):
+    """Trafic factice dont la valeur est l'heure locale : un lag correct renvoie la même heure locale."""
+    hours = pd.date_range(start, end, freq="h", tz="UTC")
+    local_hour = hours.tz_convert(TZ).hour.astype(float)
+    return pd.DataFrame({"arc": arc, "datetime": hours, "debit_horaire": local_hour,
+                         "taux_occupation": local_hour, "is_valid": True})
+
+
+def test_lags_follow_paris_local_time_across_dst():
+    """Après le passage à l'heure d'hiver (25/10/2026), lagN doit viser la même heure locale."""
+    traffic = _traffic("2026-09-20", "2026-11-12")
+    lags = lag_features(traffic)
+    after_dst = traffic["datetime"].dt.tz_convert(TZ) >= pd.Timestamp("2026-10-26", tz=TZ)
+    for lag in (168, 336, 504):
+        got = lags.loc[after_dst, f"debit_horaire_lag{lag}"].dropna()
+        assert len(got) > 100
+        assert (got == traffic.loc[got.index, "debit_horaire"]).all(), f"lag{lag} décalé d'une heure"
+
+
+def test_yearly_lag_follows_paris_local_time():
+    traffic = _traffic("2025-09-01", "2026-11-12")
+    got = yearly_lag_features(traffic)["debit_horaire_lag52s"]
+    ok = got.notna()
+    assert ok.sum() > 1000
+    assert (got[ok] == traffic.loc[ok, "debit_horaire"]).all()
+
+
+def test_lag_on_duplicated_and_missing_dst_hours():
+    traffic = _traffic("2026-03-01", "2026-04-20")
+    lags = lag_features(traffic)["debit_horaire_lag168"]
+    local = traffic["datetime"].dt.tz_convert(TZ).dt.tz_localize(None)
+    # 05/04 02:00 locale existe, mais 7 jours avant = 29/03 02:00 locale, qui n'existe pas -> NaN
+    assert pd.isna(lags[local == pd.Timestamp("2026-04-05 02:00")]).all()
+    # Heure en double : 25/10/2026 02:00 existe deux fois, le lag d'une semaine plus tard est leur moyenne
+    traffic = _traffic("2026-10-01", "2026-11-05")
+    traffic.loc[traffic["datetime"] == pd.Timestamp("2026-10-25 00:00", tz="UTC"), "debit_horaire"] = 10.0
+    traffic.loc[traffic["datetime"] == pd.Timestamp("2026-10-25 01:00", tz="UTC"), "debit_horaire"] = 20.0
+    lags = lag_features(traffic)["debit_horaire_lag168"]
+    local = traffic["datetime"].dt.tz_convert(TZ).dt.tz_localize(None)
+    assert (lags[local == pd.Timestamp("2026-11-01 02:00")] == 15.0).all()
 
 
 def test_baseline_submission_format():
