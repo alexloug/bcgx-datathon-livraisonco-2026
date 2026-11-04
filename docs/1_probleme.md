@@ -47,7 +47,7 @@ fait rater un créneau. Les seuils `etat_trafic` de la Ville sont des seuils d'o
 15-30 %, saturé 30-50 %, bloqué > 50 %) : on peut livrer des **classes de trafic** par créneau. Ces indicateurs se
 calculent après la prédiction ; dans le dataset, ils fuiraient la cible.
 
-**Ce que le modèle rate** (backtest XGBoost, 6 h-20 h) :
+**Ce que le modèle rate** (backtest XGBoost de début novembre, **6 h-20 h** : 52 semaines de 2023 et 18 de 2026 ; non recalculé sur 24 h) :
 
 | | Champs-Elysées | Convention | Saint-Pères |
 |---|---|---|---|
