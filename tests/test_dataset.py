@@ -4,7 +4,7 @@ import pandas as pd
 from src.config import ARCS, CHAMPS_PROXIES, TARGETS, TZ
 from src.data import build_dataset
 from src.data.build_dataset import (apply_ratios, chantier_features, clean_targets, distance_to_segment, fit_ratios,
-                                    reconstruct_champs)
+                                    level_vacation_share, reconstruct_champs, school_calendar)
 from src.data.sources import evenements
 
 HOURS = pd.date_range("2025-01-06", periods=24 * 28, freq="h", tz="UTC")
@@ -101,3 +101,30 @@ def test_chantier_features_window_and_coverage_gap(monkeypatch):
     assert np.allclose(out["chantier_surface_arc"].iloc[:3], [0, np.log1p(100), np.log1p(100)])
     assert out["chantier_nouveau_7j"].iloc[:3].tolist() == [0, 1, 0]
     assert out.iloc[3].isna().all()                                   # trou de couverture : inconnu, pas 0
+
+
+def test_school_calendar(monkeypatch):
+    vac = pd.DataFrame({
+        "nom": ["Vacances d'Été", "Pont de l'Ascension", "Vacances de la Toussaint", "Vacances de Noël"],
+        "debut": ["2026-07-04", "2026-05-14", "2026-10-17", "2026-12-19"],
+        "fin": ["2026-09-01", "2026-05-18", "2026-11-02", "2027-01-04"],
+    })
+    monkeypatch.setattr(build_dataset.calendrier, "load", lambda name: vac)
+    day = pd.Series(pd.to_datetime(["2026-08-30", "2026-09-01", "2026-10-20", "2026-11-07", "2026-11-11"]))
+    out = school_calendar(day)
+    assert out["vacances_type"].tolist() == [5, 0, 1, 0, 0]
+    assert out["jours_avant_reprise"].tolist() == [2, -1, 13, -1, -1]
+    assert out["jours_depuis_reprise"].tolist() == [-1, 0, -1, 5, 9]
+    assert out["jours_avant_vacances"].tolist() == [-1, 42, -1, 42, 38]   # plafonné à 42 jours
+
+
+def test_level_vacation_share_matches_level_window():
+    hours = pd.date_range("2026-09-01", periods=24 * 70, freq="h", tz="UTC")
+    df = pd.DataFrame({"arc": "Convention", "datetime": hours, "vacances": hours >= hours[24 * 30]})
+    share = level_vacation_share(df)
+    # La fenêtre du niveau s'arrête 144 h avant t : les vacances n'y entrent que 6 jours après leur début,
+    # et la remplissent 28 jours plus tard.
+    assert share.iloc[24 * 36 - 1] == 0
+    assert share.iloc[24 * 36] > 0
+    assert share.iloc[24 * 64 - 2] < 1
+    assert share.iloc[24 * 64 - 1] == 1

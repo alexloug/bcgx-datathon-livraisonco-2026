@@ -47,11 +47,11 @@ Contrainte forte : une feature pour l'heure t n'utilise que des valeurs observé
 |---|---|---|---|---|
 | Calendrier | heure, jour de semaine, mois, week-end | dérivé de `datetime` | oui | haute |
 | Calendrier | jour férié, pont, veille de férié | `external.parquet` (ponts à ajouter) | partiel | haute (le 11/11 est dans la fenêtre) |
-| Calendrier | vacances scolaires zone C | API data.education.gouv.fr | non | haute (fin des vacances de Toussaint) |
+| Calendrier | vacances scolaires zone C, type, jours avant / depuis la reprise, part de vacances dans le niveau 28 j | API data.education.gouv.fr | oui | haute (fin des vacances de Toussaint) |
 | Historique | lags S-1, S-2, S-3 même heure, moyenne | `features/build.py` | oui | haute |
 | Historique | même jour l'an dernier (lag 52 semaines), profil moyen par heure × jour sur 4-8 semaines | archives + recent | non | moyenne |
 | Historique | lags croisés débit ↔ occupation, arcs voisins | recent | non | moyenne |
-| Météo | pluie, température, vent (historique + prévision 07-11/11) | Open-Meteo / Météo-France | non | moyenne |
+| Météo | pluie, température, vent (historique + prévision 07-11/11) ; neige du jour et de la veille, gel | Open-Meteo | oui | moyenne |
 | Événements | manifestations, matchs, salons, cérémonies du 11 novembre (Champs-Elysées) | à recenser | non | moyenne |
 | Travaux | chantiers sur chaussée sur ou près des arcs | open data Paris (emprises, archives 2019-2024) | dans le dataset (`chantier_*`), pas dans le modèle : aucun gain en backtest | basse (`docs/determinants_trafic.md` §5) |
 | Régimes | confinement, JO 2024 | `external.parquet` | oui | basse (utile seulement avec les archives) |

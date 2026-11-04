@@ -94,12 +94,17 @@ features avec les seules données disponibles au cutoff**.
 | `hour`, `dow`, `month`, `is_weekend` | calendrier, heure de Paris | — |
 | `ferie`, `veille_ferie`, `lendemain_ferie`, `pont` | pont = lundi avant un mardi férié, ou vendredi après un jeudi férié | calendrier.api.gouv.fr |
 | `vacances` | vacances scolaires zone C (Paris) | data.education.gouv.fr |
+| `vacances_type` | 0 hors vacances, 1 Toussaint, 2 Noël, 3 Hiver, 4 Printemps, 5 Été (ponts de l'Ascension exclus) | idem |
+| `jours_avant_reprise` | en vacances : jours jusqu'à la reprise (creux de la mi-août, retour fin août) ; sinon -1 | idem |
+| `jours_depuis_reprise`, `jours_avant_vacances` | hors vacances : jours depuis la dernière reprise / jusqu'aux prochaines vacances ; sinon -1. Plafonnés à 42 | idem |
+| `vacances_niveau28j` | part d'heures de vacances dans la fenêtre de `<cible>_niveau28j` : corrige un niveau tiré vers le bas après des vacances (≈ 0,55 sur la fenêtre du 07-11/11) | idem |
 | `heure_ete` | heure d'été en vigueur | — |
 | `<cible>_lag168/336/504`, `<cible>_lag_mean` | même heure il y a 1, 2, 3 semaines, et leur moyenne, **pour les deux cibles** | trafic |
 | `<cible>_niveau28j` | moyenne des 28 jours qui s'arrêtent 144 h avant t : suit les changements de niveau | trafic |
 | `<cible>_lag52s` | même heure, même jour de semaine, 52 semaines avant | trafic |
 | `meteo_*` | **prévision** : prévisions archivées Open-Meteo, puis prévision courante sur la fenêtre | Open-Meteo |
 | `meteo_pluie` | `meteo_precipitation` > 0,1 mm/h | Open-Meteo |
+| `meteo_neige_jour`, `meteo_neige_veille`, `meteo_tmin_jour` | neige prévue sur la journée et la veille (cm), température minimale prévue du jour | Open-Meteo (agrégats journaliers de la prévision) |
 | `meteo_obs_*` | météo **observée** : pour l'analyse uniquement, **ne pas utiliser comme feature** (vide sur la fenêtre) | Open-Meteo |
 | `evenement_fermeture`, `evenement_perturbation`, `evenement` | événement manuel en cours sur la rue de l'arc (journée entière, ou heures si renseignées) : fermeture (cérémonies, défilés, Champs piétons, marathon…), perturbation (grèves, salons), l'un ou l'autre | `data/evenements/evenements_manuels.csv` |
 | `chantier_surface_arc` | log(1 + m²) des emprises sur chaussée à 30 m ou moins du segment de l'arc | chantiers à Paris (archives + courant) |

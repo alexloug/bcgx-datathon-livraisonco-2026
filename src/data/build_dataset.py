@@ -33,6 +33,8 @@ VILLE_30 = pd.Timestamp("2021-08-30", tz=TZ)
 CHANTIER_ARC_M = 30          # emprise sur la chaussée de l'arc lui-même
 CHANTIER_PROCHE_M = 150      # carrefours et rues adjacentes
 CHANTIER_NOUVEAU_JOURS = 7   # un chantier qui commence perturbe plus qu'un chantier installé
+VACANCES_TYPES = {"Toussaint": 1, "Noël": 2, "Hiver": 3, "Printemps": 4, "Été": 5}
+SCOLAIRE_MAX_JOURS = 42      # au-delà de 6 semaines d'une reprise ou des vacances, plus d'effet visible
 
 
 # --- Cibles -----------------------------------------------------------------------------------------------
@@ -138,7 +140,46 @@ def calendar_extra(datetimes: pd.Series) -> pd.DataFrame:
     out["vacances"] = False
     for r in vac.itertuples():
         out["vacances"] |= (day >= pd.Timestamp(r.debut)) & (day < pd.Timestamp(r.fin))
-    return out
+    return pd.concat([out, school_calendar(day)], axis=1)
+
+
+def school_calendar(day: pd.Series) -> pd.DataFrame:
+    """Position dans le calendrier scolaire (zone C), en jours, plafonnée à `SCOLAIRE_MAX_JOURS` ; -1 = sans objet.
+
+    `vacances` seul traite chaque période comme un bloc. Or le trafic bouge à l'intérieur : creux de la mi-août,
+    retour dès la dernière semaine d'août, semaine de reprise, semaines qui précèdent les vacances
+    (docs/determinants_trafic.md). Les ponts de l'Ascension ne comptent pas comme une période de vacances ici.
+    """
+    vac = calendrier.load("vacances_scolaires")
+    vac = vac[~vac["nom"].str.contains("Ascension|Début")].assign(
+        debut=lambda v: pd.to_datetime(v["debut"]), fin=lambda v: pd.to_datetime(v["fin"])).sort_values("debut")
+    types = vac["nom"].map(lambda n: next((c for k, c in VACANCES_TYPES.items() if k in n), 0)).to_numpy()
+    debut, fin = vac["debut"].to_numpy(), vac["fin"].to_numpy()
+
+    days = pd.DatetimeIndex(day.unique())
+    i = np.searchsorted(debut, days.to_numpy(), side="right") - 1      # dernière période commencée
+    known = (i >= 0) & (i + 1 < len(debut))
+    i = np.clip(i, 0, len(debut) - 2)
+    en_vac = known & (days.to_numpy() < fin[i])
+    jours = lambda delta: np.minimum(delta / np.timedelta64(1, "D"), SCOLAIRE_MAX_JOURS)
+    daily = pd.DataFrame({
+        "vacances_type": np.where(en_vac, types[i], 0),
+        "jours_avant_reprise": np.where(en_vac, jours(fin[i] - days.to_numpy()), -1),
+        "jours_depuis_reprise": np.where(known & ~en_vac, jours(days.to_numpy() - fin[i]), -1),
+        "jours_avant_vacances": np.where(known & ~en_vac, jours(debut[i + 1] - days.to_numpy()), -1),
+    }, index=days)
+    daily[~known] = np.nan
+    return pd.DataFrame(daily.reindex(day).to_numpy(), columns=daily.columns, index=day.index)
+
+
+def level_vacation_share(df: pd.DataFrame, window_days: int = 28) -> pd.Series:
+    """Part d'heures de vacances dans la fenêtre du niveau `<cible>_niveau28j` (mêmes bornes, cf. level_features).
+
+    Le niveau d'une semaine qui suit des vacances est tiré vers le bas : c'est le cas de la fenêtre du 07-11/11,
+    dont le niveau couvre en partie la Toussaint. Cette part permet au modèle de corriger.
+    """
+    shifted = df["vacances"].astype(float).groupby(df["arc"]).shift(MIN_LAG_HOURS)
+    return shifted.groupby(df["arc"]).transform(lambda s: s.rolling(24 * window_days, min_periods=24 * 7).mean())
 
 
 def weather(datetimes: pd.Series) -> pd.DataFrame:
@@ -154,6 +195,13 @@ def weather(datetimes: pd.Series) -> pd.DataFrame:
                      obs.add_prefix("meteo_obs_").reindex(datetimes).reset_index(drop=True)], axis=1)
     out["meteo_pluie"] = out["meteo_precipitation"] > 0.1
     out.index = datetimes.index
+    # Neige et gel jouent à la journée (chaussée glissante, report vers les transports) et le lendemain, alors que
+    # la chute horaire est presque toujours nulle : agrégats journaliers de la prévision, jours de Paris.
+    fc_day = fc.groupby(fc.index.tz_convert(TZ).normalize().tz_localize(None))
+    daily = pd.DataFrame({"meteo_neige_jour": fc_day["snowfall"].sum(), "meteo_tmin_jour": fc_day["temperature_2m"].min()})
+    daily["meteo_neige_veille"] = daily["meteo_neige_jour"].shift(1)
+    day = datetimes.dt.tz_convert(TZ).dt.normalize().dt.tz_localize(None)
+    out[daily.columns] = daily.reindex(day).to_numpy()
     return out
 
 
@@ -265,6 +313,7 @@ def build_dataset(start: str = TRAIN_START, end: str = SUBMISSION_END,
         regime_flags(targets),
     ], axis=1)
     feats = pd.concat([feats, event_flags(feats)], axis=1)
+    feats["vacances_niveau28j"] = level_vacation_share(feats)
     feats = pd.concat([feats, chantier_features(feats)], axis=1)
 
     feats = feats[feats["datetime"] >= start_utc].reset_index(drop=True)

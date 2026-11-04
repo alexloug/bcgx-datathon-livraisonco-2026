@@ -101,8 +101,27 @@ la déviation de septembre, plus la fin du chantier du quai. À regarder de prè
 - Ce qui aiderait vraiment : les fermetures et déviations elles-mêmes (arrêtés de circulation), qu'on n'a pas en
   open data.
 
-Côté features (pas de source nouvelle) :
-- **semaine de reprise** après vacances et position dans les grandes vacances (début / milieu / fin d'août).
+**Calendrier scolaire et neige : fait le 04/11, gain modeste mais ciblé.**
+- Écarts au modèle simple (6 h-20 h), qui justifient les features :
+  - été : mi-août -15 à -30 %, dernière semaine avant la reprise +35 à +75 % ;
+  - 1re semaine après la Toussaint : Convention -10 % de débit et -20 % d'occupation, Saint-Pères -9 % et -11 % ;
+  - 1re semaine après Noël : jusqu'à -35 % d'occupation ;
+  - neige prévue ≥ 0,5 cm sur la journée (9 jours) : -13 à -16 % de débit, -11 à -40 % d'occupation, effet encore
+    net le lendemain. La chute horaire seule ne le capte pas, car elle est presque toujours nulle.
+- Pluie : rien à ajouter. L'effet passe par l'intensité horaire, déjà en feature (Convention : +19 à +23 %
+  d'occupation au-delà de 1 mm/h). Le cumul du jour n'explique rien.
+- Features (`src/data/build_dataset.py`) : `vacances_type`, `jours_avant_reprise`, `jours_depuis_reprise`,
+  `jours_avant_vacances`, `vacances_niveau28j`, `meteo_neige_jour`, `meteo_neige_veille`, `meteo_tmin_jour`.
+- Backtest XGBoost (6 h-20 h), RMSE débit avant → après :
+  - fin d'été : Convention 69 → 55, Saint-Pères 75 → 69, Champs 181 → 175 ;
+  - semaine de reprise : Convention 87 → 85, Saint-Pères 89 → 86 ;
+  - neige : Convention 131 → 125 ; occupation des Champs 7,5 → 6,5 ;
+  - jeudis réguliers 2022-2024 : débit stable ou meilleur (≤ 2 %), occupation un peu moins bonne sur Convention
+    (4,6 → 4,8) et Saint-Pères (2,4 → 2,6).
+- Une ablation par groupe (scolaire, part de vacances dans le niveau, neige) ne fait ressortir aucun groupe
+  coupable : sur les semaines ordinaires, les écarts restent dans le bruit (1 à 3 %).
+- Décision : **features gardées dans le modèle**. Elles aident là où les erreurs coûtent le plus (transitions,
+  neige) et sont neutres ailleurs. À revoir si une optimisation des hyperparamètres change le tableau.
 
 ## 6. La fenêtre du 07 au 11/11/2026
 
