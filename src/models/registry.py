@@ -1,14 +1,5 @@
-"""Modèles disponibles ; chargés à l'utilisation. Gradient boosting alternatif et MLP : voir exploration/."""
-from importlib import import_module
+"""Modèles disponibles, par nom : `--model <nom>` dans evaluate.py et predict.py."""
+from src.models.baseline import SeasonalBaseline
+from src.models.xgb import XGBModel
 
-
-def _factory(module, name):
-    def create(**params):
-        return getattr(import_module(module), name)(**params)
-    return create
-
-
-MODELS = {
-    "baseline": _factory("src.models.baseline", "SeasonalBaseline"),
-    "xgb": _factory("src.models.xgb", "XGBModel"),
-}
+MODELS = {"baseline": SeasonalBaseline, "xgb": XGBModel}
