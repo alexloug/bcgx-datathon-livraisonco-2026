@@ -14,7 +14,7 @@ Ses tests : `python -m pytest exploration/tests`.
 | `experiments/`, `configs/` | Protocole de réglage / validation du stream 2 et ses configurations |
 | `notebooks/` | EDA, qualité des données, construction du dataset |
 | `data/` | Anciens constructeurs `build_traffic.py` et `build_external.py`, remplacés par `src/data/build_dataset.py` |
-| `docs/` | Documents d'origine (ajoutés à l'étape 4) |
+| `docs/` | Les 13 documents d'origine, avant leur fusion en 4 dans `docs/` à la racine |
 
 ## Ce qu'on a écarté
 

@@ -52,7 +52,9 @@ def refresh() -> None:
     check_sources()
     df, meta = build_dataset.build_dataset()
     build_dataset.save(df, meta)
-    export_dataset.write()
+    export_meta = export_dataset.write()
+    print(f"Dernière heure observée : {export_meta['derniere_heure_observee_utc']} (UTC)")
+    print("Features incomplètes sur la fenêtre :", export_meta["fenetre_part_renseignee"] or "aucune")
 
 
 def check_sources() -> None:

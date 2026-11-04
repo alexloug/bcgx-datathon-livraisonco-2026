@@ -1,7 +1,7 @@
 """Réseau de neurones (MLP, PyTorch) global : les 2 cibles prédites ensemble, les 3 arcs ensemble.
 
 Mêmes entrées que XGBoost (Preprocessor), pour mesurer l'effet du modèle à données identiques. Pas de réglage :
-architecture et entraînement standards (docs/comparaison_modeles.md).
+architecture et entraînement standards (exploration/docs/comparaison_modeles.md).
 
 Pipeline : Preprocessor -> standardisation des entrées et des cibles (statistiques de l'entraînement) ->
 MLP 3 couches (ReLU, dropout) -> sortie à 2 neurones -> déstandardisation et bornes.

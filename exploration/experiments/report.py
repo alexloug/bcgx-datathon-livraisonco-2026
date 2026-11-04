@@ -70,6 +70,6 @@ def report(run, destination):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("run", help="dossier de campagne terminée")
-    parser.add_argument("--output", default="docs/resultats_stream2.md")
+    parser.add_argument("--output", default="exploration/docs/resultats_stream2.md")
     args = parser.parse_args()
     report(args.run, args.output)

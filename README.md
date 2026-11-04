@@ -1,64 +1,80 @@
 # LivraisonCo — Datathon BCG X 2026
 
-Prévision horaire du débit et de l'occupation sur Champs-Elysées, Convention et Saint-Pères,
-du 7 au 11 novembre 2026 (360 lignes).
+## Le problème
 
-## Organisation
+Prédire, heure par heure, le débit et le taux d'occupation de 3 arcs parisiens (Champs-Elysées, Convention, Saint-Pères)
+du samedi 07/11/2026 00 h au mercredi 11/11 23 h : 360 lignes, notées en RMSE sur les 24 heures.
+Dernière donnée disponible : le 05/11 à 23 h, puis 1 jour sauté et 5 jours à prédire. Rendu : CSV, code et deck avant le vendredi 06/11, 18 h.
 
-| Dossier | Contenu |
+## Démarrage
+
+```bash
+pip install -r requirements.txt                              # Python 3.11 ; `unzip` dans le PATH pour les archives trafic
+python -m src.predict --group <groupe> --refresh             # 1. données : mise à jour, dataset, prédiction -> outputs/output_<groupe>.csv
+python -m src.evaluate --model xgb --folds all               # 2. backtest : XGBoost contre la baseline, 8 jeudis récents + 34 semaines fériées
+python -m src.predict --group <groupe>                       # 3. rendu : refait le CSV depuis les données déjà présentes, avec contrôle du format BCG
+```
+
+Premier lancement : ajouter `python -m src.data.update --history 2021 2025` pour télécharger les archives annuelles du trafic.
+Les tests : `python -m pytest -q tests`.
+
+## Démarche
+
+1. **Données** : trafic Paris open data depuis le 21/06/2021, nettoyé sans interpolation ; le capteur muet des Champs-Elysées est reconstruit par le capteur voisin ; calendrier, vacances, fériés, événements saisis à la main, météo prévue ([docs/2_donnees.md](docs/2_donnees.md)).
+2. **Features** : calendrier, historique décalé d'au moins 144 h (S-1 à S-3, niveau 28 j, 52 semaines) en heure de Paris, vacances, météo prévue, événements, régimes : 44 colonnes sans fuite possible.
+3. **Modèle** : un XGBoost par cible, réglages par défaut, comparé à une baseline saisonnière ([docs/3_modele.md](docs/3_modele.md)).
+4. **Validation** : backtest qui rejoue le rendu (cutoff le jeudi 23 h, 1 jour sauté, 5 jours prédits), RMSE sur 24 h, sur les 8 derniers jeudis et 34 semaines contenant un férié.
+
+## Décisions
+
+| Décision | Pourquoi | Preuve |
+|---|---|---|
+| Données depuis 06/2021 | avant, ruptures de régime (Covid, capacité des Champs en 2019, capteur Convention en 2020) et pas de prévision météo archivée | débit des Champs ÷ 2 et occupation × 2 en 2018-2019 ; [2_donnees](docs/2_donnees.md) §2 |
+| Pas d'interpolation | les trous sont des blocs de plusieurs semaines, qu'aucune interpolation ne rend crédibles | Convention absente 7 mois (11/2022), Saint-Pères 11 mois (11/2024) ; [2_donnees](docs/2_donnees.md) §3 |
+| Champs reconstruits par le capteur voisin | le capteur 4264 est muet depuis le 19/11/2025 ; sans lui, l'arc n'aurait ni cible ni lag | débit 46 véh/h d'erreur (6 %), occupation 27 % ; [2_donnees](docs/2_donnees.md) §2 |
+| Lags en heure de Paris | un décalage de 24 h × n sur la grille UTC vise une heure fausse après le changement d'heure | 07/11 08:00 visait 17/10 09:00 (322 au lieu de 237) ; 0 écart après correction ; [2_donnees](docs/2_donnees.md) §2 |
+| XGBoost seul | LightGBM fait jeu égal, le réseau de neurones perd | LightGBM à 0-3 %, 3× plus lent ; MLP +5 à +15 % de RMSE sur le débit ; [exploration/README](exploration/README.md) |
+| Réglages par défaut | profondeur et régularisation testées ne font pas mieux | score relatif 0,772 / 0,771 contre 0,771 ; [3_modele](docs/3_modele.md) §4 |
+| Météo observée et chantiers écartés | la météo observée est inconnue à la prédiction ; les chantiers ne gagnent qu'un fold sur deux | débit avec / sans chantiers : 193/193, 91/89, 79/78 ; [3_modele](docs/3_modele.md) §4 |
+| Heures « Barré » | à compléter avec Victor | à compléter |
+
+## Résultats
+
+RMSE sur les 24 heures, XGBoost / baseline (moyenne des 4 dernières semaines), débit en véh/h puis occupation en points.
+Dernière exécution de `python -m src.evaluate --model xgb --folds all`, données au 03/11/2026.
+
+| Arc | Semaines normales (8 jeudis, 03/09 → 22/10) | Semaines fériées (34 semaines depuis 2022) |
+|---|---|---|
+| Champs-Elysées | 176 / 192 · 8,3 / 9,6 (gain 9 % · 14 %) * | 177 / 225 · 9,4 / 10,2 (gain 22 % · 8 %) |
+| Convention | 66 / 82 · 2,5 / 2,9 (gain 20 % · 13 %) | 75 / 122 · 2,7 / 3,3 (gain 38 % · 18 %) |
+| Saint-Pères | 104 / 160 · 2,9 / 3,7 (gain 35 % · 22 %) | 73 / 111 · 1,9 / 2,4 (gain 34 % · 22 %) |
+
+\* Cible des Champs entièrement reconstruite sur les semaines normales : la RMSE mesure l'écart au proxy, pas à un capteur.
+XGBoost bat la baseline sur les 6 couples arc × cible dans les deux familles de semaines. Les gains les plus faibles sont sur les Champs
+(débit en semaines normales : 9 % ; occupation en semaines fériées : 8 %), l'arc à cible reconstruite. Détail par jour d'horizon et par origine de la cible : sortie de la commande.
+
+## Structure
+
+```
+src/config.py            arcs, chemins, fenêtre, décalage minimum de 144 h
+src/data/                collecte (update.py, sources/), dataset complet (build_dataset.py), export contrôlé (export_dataset.py)
+src/features/build.py    calendrier et historique décalé, en heure de Paris
+src/models/              baseline, xgb, prétraitement ; registry.py liste les modèles
+src/evaluate.py          backtest 24 h, comparaison à la baseline
+src/predict.py           point d'entrée : --refresh, prédiction, contrôle du format BCG
+tests/                   tests du dataset, du backtest, des modèles et du format
+docs/                    1_probleme, 2_donnees, 3_modele, 4_rendu
+exploration/             pistes écartées (LightGBM, MLP, protocole stream 2, notebooks, docs d'origine)
+data/, outputs/          données téléchargées (non versionnées) ; CSV de rendu et backtests
+```
+
+## Contributeurs
+
+| Qui | Rôle |
 |---|---|
-| `data/<source>/` | Sources téléchargées, non versionnées |
-| `data/processed/` | Dataset complet et export final `dataset_modele.parquet` |
-| `src/data/`, `src/features/` | Stream 1 : collecte, nettoyage et construction des features |
-| `src/models/` | Stream 2 : modèles et prétraitement partagé |
-| `src/experiments/`, `configs/` | Stream 2 : protocole et configurations reproductibles |
-| `src/evaluate.py`, `src/predict.py` | Stream 3 : backtests et CSV de rendu |
-| `docs/` | Méthode, livraison, résultats et limites |
-| `notebooks/` | Analyses de qualité et construction du dataset |
-| `outputs/experiments/` | Résultats locaux de chaque campagne (non versionnés) |
-| `archive/` | Ancienne approche CSV, conservée hors du pipeline actif |
-| `tests/` | Contrôles du dataset, modèles et protocole |
-
-## Préparer les données
-
-Depuis la racine, avec l'environnement virtuel activé :
-
-```bash
-pip install -r requirements.txt
-python -m src.data.update --history 2020 2025 &&
-python -m src.data.build_dataset &&
-python -m src.data.export_dataset
-```
-
-Si le dataset final est déjà disponible, passer directement aux expériences.
-Description : [livraison du dataset](docs/livraison_dataset.md), [features](docs/features.md).
-
-## Stream 2 : comparer et régler les modèles
-
-Sur le macOS local sans Homebrew, OpenMP a été installé dans `.venv/lib/`.
-Avant d'entraîner ou de lancer tous les tests, exécuter :
-
-```bash
-export DYLD_LIBRARY_PATH="$PWD/.venv/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
-```
-
-```bash
-python -m src.experiments.run --config configs/stream2.json
-python -m pytest -q tests
-```
-
-Le lanceur sélectionne une configuration sur les semaines de réglage, puis évalue seulement la baseline,
-XGBoost de référence et cette configuration sur une validation temporelle distincte et les semaines du 11 novembre.
-Voir le [protocole stream 2](docs/stream2_modelisation.md) avant d'interpréter les résultats.
-Les paramètres sélectionnés sont conservés dans `selected.json` ; ils ne remplacent pas automatiquement le modèle de rendu.
-
-## Rendu
-
-```bash
-python -m src.predict --model xgb --group NOM_DU_GROUPE
-```
-
-Cette commande utilise les paramètres XGBoost par défaut et le dataset complet. Le rendu définitif doit attendre
-l'actualisation du 6 novembre, les contrôles de qualité et la décision finale de l'équipe.
-
-Index des documents : [docs/README.md](docs/README.md).
+| Robin | données : sources, nettoyage, proxy des Champs, dataset |
+| Pétronille | événements saisis et vérifiés |
+| Alex | protocole de validation |
+| Danny | feuille de route |
+| Victor | modèle |
+| Léopold | backtest et structure du dépôt |

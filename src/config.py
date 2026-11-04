@@ -13,8 +13,8 @@ CHANTIERS_DIR = DATA_DIR / "chantiers"
 PROCESSED_DIR = DATA_DIR / "processed"
 OUTPUTS_DIR = ROOT / "outputs"
 
-DATASET_PATH = PROCESSED_DIR / "dataset.parquet"   # src/data/build_dataset.py, doc : docs/dataset_entrainement.md
-DATASET_MODELE_PATH = PROCESSED_DIR / "dataset_modele.parquet"   # livré à l'équipe modèle : docs/livraison_dataset.md
+DATASET_PATH = PROCESSED_DIR / "dataset.parquet"   # src/data/build_dataset.py, doc : docs/2_donnees.md
+DATASET_MODELE_PATH = PROCESSED_DIR / "dataset_modele.parquet"   # livré à l'équipe modèle : docs/2_donnees.md
 
 TZ = "Europe/Paris"
 TARGETS = ["debit_horaire", "taux_occupation"]

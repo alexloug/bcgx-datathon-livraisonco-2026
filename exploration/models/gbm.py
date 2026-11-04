@@ -1,7 +1,7 @@
 """Modèle LightGBM global : un régresseur par cible, les 3 arcs ensemble (l'arc est une feature).
 
 Même pipeline que src/models/xgb.py (Preprocessor -> régresseur -> bornes), pour comparer les deux boostings à
-données identiques. Paramètres équivalents à ceux de XGBoost, sans réglage (docs/comparaison_modeles.md).
+données identiques. Paramètres équivalents à ceux de XGBoost, sans réglage (exploration/docs/comparaison_modeles.md).
 
 Note macOS : LightGBM et XGBoost ont besoin d'OpenMP (`brew install libomp`).
 """

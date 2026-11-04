@@ -2,7 +2,7 @@
 
 Une ligne par arc du brief et par heure, de TRAIN_START à la fin de la fenêtre à prédire, avec les deux cibles
 (nettoyées, Champs-Elysées reconstruit par proxy après l'arrêt du capteur) et toutes les features disponibles
-au moment de prédire. Hypothèses, choix et ruptures : docs/dataset_entrainement.md.
+au moment de prédire. Hypothèses, choix et ruptures : docs/2_donnees.md.
 
     from src.data.build_dataset import build_dataset
     df, meta = build_dataset()                                   # défauts de config.py
@@ -151,7 +151,7 @@ def school_calendar(day: pd.Series) -> pd.DataFrame:
 
     `vacances` seul traite chaque période comme un bloc. Or le trafic bouge à l'intérieur : creux de la mi-août,
     retour dès la dernière semaine d'août, semaine de reprise, semaines qui précèdent les vacances
-    (docs/determinants_trafic.md). Les ponts de l'Ascension ne comptent pas comme une période de vacances ici.
+    (docs/3_modele.md §4). Les ponts de l'Ascension ne comptent pas comme une période de vacances ici.
     """
     vac = calendrier.load("vacances_scolaires")
     vac = vac[~vac["nom"].str.contains("Ascension|Début")].assign(

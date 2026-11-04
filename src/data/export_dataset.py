@@ -2,7 +2,7 @@
 
 Même lignes que dataset.parquet, mais seulement les colonnes utiles au modèle : clés, cibles, colonnes de suivi et
 exactement les features que reçoit le prétraitement (`feature_columns` : sans chantiers ni météo observée).
-Contrôles bloquants avant écriture. Doc : docs/livraison_dataset.md.
+Contrôles bloquants avant écriture. Doc : docs/2_donnees.md.
 
 Les 4 colonnes chantiers (`chantier_*`, `chantier_features` dans build_dataset.py) sont toujours générées dans
 dataset.parquet. `--avec-chantiers` les ajoute au fichier livré, pour analyse : le prétraitement du modèle les ignore
