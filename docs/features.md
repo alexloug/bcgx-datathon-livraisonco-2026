@@ -145,7 +145,8 @@ Les 4 colonnes chantiers sont dans le dataset mais **pas dans le modèle** : ell
 - **Trou de couverture** du 01/01/2025 à la veille du téléchargement : pas d'archive 2025, et le jeu courant ne garde que les chantiers en cours. Les colonnes y valent NaN (inconnu), pas 0.
 - Backtest XGBoost (39 jeudis de 2022 à 2024, 6 h-20 h) : les chantiers gagnent une semaine sur deux, soit du bruit. Sur les épisodes de chantier eux-mêmes, quelques gains et autant de pertes.
 - Pourquoi ça ne marche pas : la moitié des jours ont une emprise sur chaussée à moins de 150 m, et une emprise ne dit ni si une voie est fermée ni par où passe la déviation.
-- Pour les réactiver : retirer `chantier_` de `EXCLUDED_PREFIXES` (`src/models/preprocessing.py`) et laisser leurs NaN au lieu de les imputer.
+- Le code est conservé : les colonnes sont générées à chaque `python -m src.data.build_dataset` (dans `dataset.parquet`), et `python -m src.data.export_dataset --avec-chantiers` les ajoute au dataset livré (`docs/livraison_dataset.md`).
+- Pour les réactiver dans le modèle : retirer `chantier_` de `EXCLUDED_PREFIXES` (`src/models/preprocessing.py`) et laisser leurs NaN au lieu de les imputer.
 
 ## Régimes
 

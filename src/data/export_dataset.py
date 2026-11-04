@@ -4,9 +4,15 @@ Même lignes que dataset.parquet, mais seulement les colonnes utiles au modèle 
 exactement les features que reçoit le prétraitement (`feature_columns` : sans chantiers ni météo observée).
 Contrôles bloquants avant écriture. Doc : docs/livraison_dataset.md.
 
-Usage : python -m src.data.export_dataset            (après python -m src.data.build_dataset)
+Les 4 colonnes chantiers (`chantier_*`, `chantier_features` dans build_dataset.py) sont toujours générées dans
+dataset.parquet. `--avec-chantiers` les ajoute au fichier livré, pour analyse : le prétraitement du modèle les ignore
+tant que `chantier_` reste dans `EXCLUDED_PREFIXES` (src/models/preprocessing.py).
+
+Usage : python -m src.data.export_dataset                    (après python -m src.data.build_dataset)
+        python -m src.data.export_dataset --avec-chantiers
 """
 
+import argparse
 import json
 
 import pandas as pd
@@ -52,9 +58,10 @@ def check(df: pd.DataFrame, features: list[str]) -> None:
     assert window[features].notna().mean().min() > 0, "feature entièrement vide sur la fenêtre"
 
 
-def export(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
+def export(df: pd.DataFrame, avec_chantiers: bool = False) -> tuple[pd.DataFrame, dict]:
     features = feature_columns(df)
-    out = df[KEYS + TARGETS + SUIVI + features].reset_index(drop=True)
+    chantiers = [c for c in df if c.startswith("chantier_")] if avec_chantiers else []
+    out = df[KEYS + TARGETS + SUIVI + features + chantiers].reset_index(drop=True)
     check(out, features)
     window = out[out["partie"] == "a_predire"]
     hist = out[out["partie"] == "historique"]
@@ -68,13 +75,18 @@ def export(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
         "lignes_par_arc_et_origine": out.groupby(["arc", "source_cible"]).size().unstack(fill_value=0).to_dict("index"),
         "lignes_valides_par_arc": out[out["is_valid"]].groupby("arc").size().to_dict(),
         "features": {f: [c for c in features if famille(c) == f] for f, _ in FAMILLES},
+        "colonnes_hors_modele": chantiers,
         "fenetre_part_renseignee": window[features].notna().mean().round(3)[lambda s: s < 1].to_dict(),
     }
     return out, meta
 
 
 if __name__ == "__main__":
-    df, meta = export(pd.read_parquet(DATASET_PATH))
+    parser = argparse.ArgumentParser(description="Exporte data/processed/dataset_modele.parquet")
+    parser.add_argument("--avec-chantiers", action="store_true",
+                        help="ajoute les 4 colonnes chantier_* (non utilisées par le modèle)")
+    args = parser.parse_args()
+    df, meta = export(pd.read_parquet(DATASET_PATH), avec_chantiers=args.avec_chantiers)
     df.to_parquet(DATASET_MODELE_PATH, index=False)
     DATASET_MODELE_PATH.with_suffix(".json").write_text(json.dumps(meta, indent=2, ensure_ascii=False, default=str))
     print(f"{meta['version']} : {len(df)} lignes, {df.shape[1]} colonnes "

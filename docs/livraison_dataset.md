@@ -41,7 +41,8 @@ Définition, source et effet mesuré de chaque feature : [`features.md`](feature
 
 Ce qui n'est **pas** dans le fichier, volontairement :
 - **chantiers** et **météo observée** : aucun gain en backtest pour les premiers, inconnue au moment de prédire pour
-  la seconde. Ces colonnes restent dans `dataset.parquet` pour l'analyse ;
+  la seconde. Ces colonnes restent générées dans `dataset.parquet` ; les chantiers peuvent être ajoutés au fichier
+  livré (section suivante) ;
 - toute colonne calculée à partir de la cible de l'heure t (classe de trafic, indice de temps de parcours) : ce serait
   une fuite. Elles se calculent après la prédiction ([`reformulation_probleme.md`](reformulation_probleme.md) §2).
 
@@ -51,6 +52,34 @@ Ce qui n'est **pas** dans le fichier, volontairement :
 | `historique` | `proxy` | 7 571 | Champs-Elysées après l'arrêt du capteur (19/11/2025), reconstruit à partir des arcs voisins 4274 et 4281 |
 | `historique` | `absent` | 32 784 | trou de capteur ou heure invalide : cible NaN, features présentes |
 | `non_predit` / `a_predire` | `futur` | 573 | après la dernière heure observée ; `a_predire` = les 360 lignes du rendu (07/11 00:00 → 11/11 23:00) |
+
+## Générer les données de chantier
+
+Les chantiers ne sont pas dans le modèle pour l'instant, mais leur code est conservé et tourne à chaque
+`build_dataset` : on peut les générer et les tester à tout moment.
+
+```bash
+python -m src.data.update --sources chantiers          # emprises 2019-2024 (archives) + chantiers en cours
+python -m src.data.build_dataset                       # calcule les 4 colonnes chantier_* dans dataset.parquet
+python -m src.data.export_dataset --avec-chantiers     # les ajoute au fichier livré (55 colonnes)
+```
+
+| Colonne | Définition |
+| --- | --- |
+| `chantier_surface_arc` | log(1 + m²) des emprises sur chaussée à 30 m ou moins de l'arc |
+| `chantier_surface_150m` | idem à 150 m ou moins |
+| `chantier_voirie_150m` | idem, voirie et réseaux seulement (sans chantiers de bâtiment) |
+| `chantier_nouveau_7j` | une emprise sur chaussée à 150 m ou moins a commencé il y a moins de 7 jours |
+
+- Code : `chantier_features` dans `src/data/build_dataset.py`, connecteur `src/data/sources/chantiers.py`.
+- Couverture : complète de 2019 à 2024 et à partir du téléchargement ; **NaN du 01/01/2025 à la veille du
+  téléchargement** (pas d'archive 2025 publiée), ce qui veut dire « inconnu », pas « aucun chantier ».
+- Même avec `--avec-chantiers`, le modèle ne les lit pas : `chantier_` est dans `EXCLUDED_PREFIXES`
+  (`src/models/preprocessing.py`). Pour les tester dans le modèle, retirer ce préfixe et laisser leurs NaN au lieu
+  de les imputer (XGBoost les gère).
+- Pourquoi ils sont sortis : en backtest (39 jeudis de 2022 à 2024), ils gagnent une semaine sur deux, soit du bruit
+  ([`determinants_trafic.md`](determinants_trafic.md) §5). Une emprise ne dit ni si une voie est fermée ni par où
+  passe la déviation : la donnée qui aiderait vraiment, ce sont les arrêtés de circulation.
 
 ## Règles d'utilisation
 
