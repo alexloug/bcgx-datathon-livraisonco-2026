@@ -1,7 +1,10 @@
 import numpy as np
 import pandas as pd
+import pytest
 
 from src.config import ARCS, TARGETS, TZ
+from src.models.gbm import GBMModel
+from src.models.mlp import MLPModel
 from src.models.preprocessing import Preprocessor, feature_columns
 from src.models.xgb import XGBModel
 
@@ -46,11 +49,13 @@ def test_preprocessor_leaves_no_nan_and_keeps_columns_stable():
     assert (X_new["nb_lags_manquants"] >= 1).all()
 
 
-def test_xgb_fits_and_predicts_bounded_values():
+@pytest.mark.parametrize("model", [lambda: XGBModel(n_estimators=20), lambda: GBMModel(n_estimators=20),
+                                   lambda: MLPModel(max_epochs=3)], ids=["xgb", "gbm", "mlp"])
+def test_model_fits_and_predicts_bounded_values(model):
     df = fake_dataset()
     cutoff = df["datetime"].max() - pd.Timedelta(days=6)
     start, end = cutoff + pd.Timedelta(hours=25), df["datetime"].max()
-    pred = XGBModel(n_estimators=20).fit(df, cutoff).predict(df, cutoff, start, end)
+    pred = model().fit(df, cutoff).predict(df, cutoff, start, end)
     assert len(pred) == len(ARCS) * len(pd.date_range(start, end, freq="h"))
     assert not pred[TARGETS].isna().any().any()
     assert (pred[TARGETS] >= 0).all().all() and (pred["taux_occupation"] <= 100).all()
