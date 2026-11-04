@@ -101,7 +101,7 @@ features avec les seules données disponibles au cutoff**.
 | `meteo_*` | **prévision** : prévisions archivées Open-Meteo, puis prévision courante sur la fenêtre | Open-Meteo |
 | `meteo_pluie` | `meteo_precipitation` > 0,1 mm/h | Open-Meteo |
 | `meteo_obs_*` | météo **observée** : pour l'analyse uniquement, **ne pas utiliser comme feature** (vide sur la fenêtre) | Open-Meteo |
-| `evenement` | événement manuel en cours sur la rue de l'arc (11/11, 8/05, 14/07, Nouvel An) | `data/evenements/evenements_manuels.csv` |
+| `evenement_fermeture`, `evenement_perturbation`, `evenement` | événement manuel en cours sur la rue de l'arc (journée entière, ou heures si renseignées) : fermeture (cérémonies, défilés, Champs piétons, marathon…), perturbation (grèves, salons), l'un ou l'autre | `data/evenements/evenements_manuels.csv` |
 | `jo_2024`, `post_jo_2024`, `post_30kmh` | indicateurs de régime | — |
 
 Les valeurs reconstruites des Champs-Elysées alimentent aussi les lags : sans elles, l'arc n'aurait aucun lag pour la
