@@ -27,7 +27,12 @@ Convention : `datetime` en UTC (tz-aware), dates calendaires (`date`, `debut`, `
 | `evenements/` | `que_faire_a_paris.parquet` | [Que faire à Paris](https://opendata.paris.fr/explore/dataset/que-faire-a-paris-/) | événements encore en ligne | quotidienne |
 | `chantiers/` | `chantiers_perturbants.parquet` | [Chantiers perturbants](https://opendata.paris.fr/explore/dataset/chantiers-perturbants/) | en cours / à venir | quotidienne |
 | `chantiers/` | `chantiers_a_paris.parquet` | [Chantiers à Paris](https://opendata.paris.fr/explore/dataset/chantiers-a-paris/) | en cours / à venir | quotidienne |
+<<<<<<< Updated upstream
 | `chantiers/` | `historique/<année>.parquet` | Historique des chantiers à Paris, une archive par an ([2024](https://opendata.paris.fr/explore/dataset/historique-chantiers-a-paris-en-2024/)) | 2019 → 2024 | figée |
+=======
+| `chantiers/` | `chantiers_2024.parquet` | [Historique des chantiers 2024](https://opendata.paris.fr/explore/dataset/historique-chantiers-a-paris-en-2024/) | 2024 | figée |
+| `arcs/` | `referentiel.parquet`, `profils.parquet`, `osm.parquet` → `caracteristiques.parquet`, `arcs_similaires.csv` | [Référentiel des arcs](https://opendata.paris.fr/explore/dataset/referentiel-comptages-routiers/) + profil horaire agrégé par l'API trafic + [OpenStreetMap](https://overpass-api.de/) | tous les arcs, 12 mois glissants | `python -m src.data.arcs_similaires` |
+>>>>>>> Stashed changes
 | `processed/` | `dataset.parquet` (+ `dataset.json`) | `src/data/build_dataset.py`, voir `docs/dataset_entrainement.md` | 21/06/2021 → fin de la fenêtre | dérivé |
 | `processed/` | `traffic_hourly.parquet`, `external.parquet` | `src/data/build_traffic.py`, `build_external.py` | — | dérivés |
 
@@ -86,6 +91,29 @@ chantiers encore en cours : les features chantiers y valent NaN (inconnu), pas 0
 
 Les coordonnées (`lat`, `lon`) situent chaque emprise par rapport au segment de l'arc (`segment` dans
 `config.ARCS`). `chantiers_perturbants` n'a pas d'historique : il ne sert qu'à lire la situation actuelle.
+
+### arcs/
+
+But : trouver les capteurs qui se comportent comme nos 3 arcs, pour élargir l'entraînement (plus de fériés, de
+11 novembre). Script : `src/data/arcs_similaires.py` (~10 min, `--local` pour recalculer sans retélécharger).
+
+- `caracteristiques.parquet` : une ligne par arc mesuré sur les 12 derniers mois (~1 850) : position, longueur,
+  débit et occupation moyens, couverture, rapport week-end / semaine, profil horaire normalisé (`sem_00`…`we_23`).
+  4264 (muet depuis le 19/11/2025) : profil des 12 mois précédents, depuis les données locales.
+- `arcs_similaires.csv` (versionné, à lire) : 15 arcs par arc du brief, classés par `score` (plus petit = plus
+  proche) = écart de forme du profil + écart de niveau de débit + écart de niveau d'occupation, chacun divisé par
+  sa médiane. Candidats : couverture ≥ 80 %, débit moyen ≥ 100 véh/h, doublons (même capteur sous deux arcs) retirés.
+- Premiers constats : les Champs ressemblent aux grands boulevards (Madeleine, Sébastopol, Clichy, Foch) ;
+  Convention ressemble au Bd Brune, au Quai d'Orsay, au Bd des Invalides ; Saint-Pères à Raspail, Gobelins,
+  Vincent Auriol. Des tronçons voisins partagent le même compteur de débit (Convention 5662/5664/5674 = 5671,
+  Saint-Pères 192 = 191) : écartés, ce ne sont pas des exemples en plus.
+- `jours_feries.parquet` : débit 7h-21h par arc les jours fériés et les jours de référence. Contrôle : les arcs
+  similaires réagissent aux fériés plus comme nos arcs que la moyenne (Convention, Saint-Pères ; non concluant pour
+  les Champs-Elysées, 4 jours seulement).
+- Justification de chaque choix : `docs/arcs_similaires.md`.
+- Pas encore vérifié : l'historique de ces arcs depuis 2021 (trous, ruptures), à faire en les téléchargeant.
+- `osm.parquet` : routes OpenStreetMap de Paris (type, voies, vitesse, sens, couloir de bus), associées à 96 % des
+  capteurs. Serveurs Overpass souvent saturés : le script réessaie sur plusieurs serveurs.
 
 ## Sources cherchées sans succès (ou laissées de côté)
 
