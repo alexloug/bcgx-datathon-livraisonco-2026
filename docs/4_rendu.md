@@ -23,7 +23,7 @@ Contrôles à faire avant d'envoyer, dans la sortie de la commande et sur le CSV
 | Météo de la fenêtre | prévision courante, sans trou |
 | Champs-Elysées | les proxys 4274 et 4281 ont mesuré la semaine passée, rapport dans sa plage (débit 1,0-1,15) |
 | Saint-Pères | comparer le 31/10 → 05/11 (après le chantier du quai) au niveau 28 j ; un écart > 15 % est à signaler comme risque connu, sans correction manuelle |
-| Format | `check_submission` passe (colonnes, types, 3 arcs, 360 lignes, aucun NaN) |
+| Format | la fonction de test du brief passe (colonnes, types, format de date, 3 arcs, 360 lignes), après notre contrôle « aucun NaN » |
 | Profil prédit | cohérent avec les mêmes jours des 3 dernières semaines (contrôle visuel) |
 | Fenêtre à la main | manifestations, grèves, cérémonie du 11/11 (déjà saisie), arrêtés de circulation ; compléter `data/evenements/evenements_manuels.csv` si besoin |
 

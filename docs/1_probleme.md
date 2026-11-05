@@ -13,7 +13,7 @@ Source : deck `2026 - Brief - LivraisonCo.pptx` (29/10/2026).
 | Données | « dernières données disponibles » ; l'API publie en J-1 | téléchargées le 06/11, dernière heure connue le 05/11 23:00 |
 | Métrique | RMSE des 2 variables sur les 3 axes, **toutes les heures** | le backtest compte les 24 h (il comptait 6 h-20 h au début) |
 | Note | Data Science /5 (RMSE + présentation), Business /5 (solution d'optimisation + présentation) | égalité départagée par la RMSE |
-| Format | `output_<groupe>.csv`, `sep=";"`, colonnes `arc`, `datetime` (`%Y-%m-%d %H:%M`), `debit_horaire`, `taux_occupation` | `check_submission` reprend le test du brief |
+| Format | `output_<groupe>.csv`, `sep=";"`, colonnes `arc`, `datetime` (`%Y-%m-%d %H:%M`), `debit_horaire`, `taux_occupation` | `test_format_and_export_output` (src/predict.py) est la fonction du brief, recopiée |
 | Business | livreurs à 10 €/h de jour (8 h-20 h), 14 €/h de nuit, créneaux de 4 à 8 h | la nuit est une option, pas une heure à ignorer |
 
 **Décalage imposé.** Dernière donnée au 05/11 23:00, première heure prédite le 07/11 00:00, dernière le 11/11 23:00 :

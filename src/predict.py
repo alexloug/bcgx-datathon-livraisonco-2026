@@ -1,4 +1,4 @@
-"""Point d'entrée du rendu : produit outputs/output_<groupe>.csv (07/11 00:00 -> 11/11 23:00), vérifié avec le test du brief.
+"""Point d'entrée du rendu : produit outputs/output_<groupe>.csv (07/11 00:00 -> 11/11 23:00), vérifié et écrit par la fonction de test du brief.
 
 Usage :
     python -m src.predict --group <groupe>              # part des données déjà présentes
@@ -8,10 +8,11 @@ Entrée : data/processed/dataset_modele.parquet. Le cutoff est sa dernière heur
 
 import argparse
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 
-from src.config import ARCS, DATA_DIR, DATASET_MODELE_PATH, OUTPUTS_DIR, SUBMISSION_END, SUBMISSION_START, TARGETS, TZ
+from src.config import DATA_DIR, DATASET_MODELE_PATH, OUTPUTS_DIR, SUBMISSION_END, SUBMISSION_START, TARGETS, TZ
 from src.data import build_dataset, export_dataset, update
 from src.models.registry import MODELS
 
@@ -29,14 +30,38 @@ def to_submission(pred: pd.DataFrame) -> pd.DataFrame:
     return out[list(OUTPUT_COLUMNS)].sort_values(["arc", "datetime"]).reset_index(drop=True)
 
 
-def check_submission(df: pd.DataFrame) -> None:
-    """Reprise des contrôles de la fonction de test fournie dans le brief (slide 13), plus l'absence de NaN."""
-    assert sorted(df.columns) == sorted(OUTPUT_COLUMNS), "Colonnes manquantes ou en trop"
-    for col, col_type in OUTPUT_COLUMNS.items():
-        assert df[col].dtype == col_type, f"La colonne {col} n'est pas de type {col_type}"
-    df["datetime"].apply(lambda x: datetime.strptime(x, "%Y-%m-%d %H:%M"))
-    assert sorted(df["arc"].unique()) == sorted(ARCS), "Valeurs inattendues dans la colonne arc"
-    assert df.shape[0] == 360, f"360 lignes attendues, {df.shape[0]} obtenues"
+# Fonction de test et d'export fournie par BCG X : brief « 2026 - Brief - LivraisonCo.pptx », slide 13 (« Format de
+# l'output », fonction de test de l'output). Recopiée mot pour mot, seuls les 3 noms d'arc ont leurs accents : ne pas la modifier.
+def test_format_and_export_output(output_df, output_directory, name_of_the_group):
+    output_columns = {"arc": object, "datetime": object, "debit_horaire": float, "taux_occupation": float}
+    # 1. Check relevant columns are in output dataframe
+    assert sorted(list(output_df.columns)) == list(
+        output_columns.keys()
+    ), "Some columns are missing or unnecessary columns are in output"
+    # 2. Check types
+    for col, col_type in output_columns.items():
+        assert output_df[col].dtype == col_type, f"Column {col} does not have type {col_type}"
+    # 3. Check datetime string has right format
+    try:
+        output_df.datetime.apply(lambda x: datetime.strptime(x, "%Y-%m-%d %H:%M"))
+    except ValueError as e:
+        raise e
+    # 4. Check `arc` columns has right values
+    assert sorted(list(output_df["arc"].unique())) == [
+        "Champs-Elysées",
+        "Convention",
+        "Saint-Pères",
+    ], "Output does not have expected unique values for column `arc`"
+    # 5. Check dataframe has right number of rows
+    assert output_df.shape[0] == 360, f"Expected number of rows is 360, output has {output_df.shape[0]}"
+    # 6. Export output
+    output_path = Path(output_directory) / f"output_{name_of_the_group}.csv"
+    print(f"[SAVE OUTPUT] Saving output here: {output_path}")
+    output_df[output_columns.keys()].to_csv(output_path, sep=";")
+
+
+def check_no_nan(df: pd.DataFrame) -> None:
+    """Contrôle supplémentaire, absent du brief : aucune prédiction manquante."""
     assert not df[TARGETS].isna().any().any(), "Des prédictions sont manquantes (NaN)"
 
 
@@ -75,14 +100,12 @@ def predict(model_name: str, group: str) -> pd.DataFrame:
     print(f"Cutoff : {cutoff.tz_convert(TZ):%Y-%m-%d %H:%M} (Paris), horizon max {(end - cutoff) / pd.Timedelta(hours=1):.0f} h")
     model = MODELS[model_name]().fit(traffic, cutoff)
     submission = to_submission(model.predict(traffic, cutoff, start, end))
+    OUTPUTS_DIR.mkdir(exist_ok=True)
     try:
-        check_submission(submission)
+        check_no_nan(submission)
+        test_format_and_export_output(submission, OUTPUTS_DIR, group)   # contrôle le format puis écrit le CSV
     except AssertionError as err:
         raise SystemExit(f"Contrôle du format BCG échoué : {err}. Aucun fichier écrit.")
-    path = OUTPUTS_DIR / f"output_{group}.csv"
-    OUTPUTS_DIR.mkdir(exist_ok=True)
-    submission.to_csv(path, sep=";")
-    print(f"-> {path}")
     return submission
 
 

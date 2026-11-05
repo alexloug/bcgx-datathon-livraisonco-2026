@@ -6,7 +6,8 @@ from src import evaluate
 from src.evaluate import holiday_cutoffs, window
 from src.features.build import assert_no_leakage, lag_features, yearly_lag_features
 from src.models.baseline import SeasonalBaseline
-from src.predict import check_submission, to_submission
+from src import predict
+from src.predict import to_submission
 
 
 def test_window_matches_submission():
@@ -72,7 +73,7 @@ def test_lag_on_duplicated_and_missing_dst_hours():
     assert (lags[local == pd.Timestamp("2026-11-01 02:00")] == 15.0).all()
 
 
-def test_baseline_submission_format():
+def test_baseline_submission_format(tmp_path):
     hours = pd.date_range("2026-09-01", "2026-11-05 22:00", freq="h", tz="UTC")
     traffic = pd.concat([
         pd.DataFrame({"arc": arc, "datetime": hours, "debit_horaire": 100.0, "taux_occupation": 5.0, "is_valid": True})
@@ -82,7 +83,8 @@ def test_baseline_submission_format():
     start = pd.Timestamp("2026-11-07 00:00", tz=TZ).tz_convert("UTC")
     end = pd.Timestamp("2026-11-11 23:00", tz=TZ).tz_convert("UTC")
     pred = SeasonalBaseline().fit(traffic, cutoff).predict(traffic, cutoff, start, end)
-    check_submission(to_submission(pred))
+    predict.test_format_and_export_output(to_submission(pred), tmp_path, "groupe")
+    assert (tmp_path / "output_groupe.csv").exists()
 
 
 def test_export_checks_block_a_broken_dataset():
