@@ -39,6 +39,11 @@ PROFIL_B2C /= PROFIL_B2C.sum()
 # Pratique actuelle supposée : B2B livré uniformément de 8h à 18h
 PROFIL_B2B_ACTUEL = np.zeros(24)
 PROFIL_B2B_ACTUEL[8:18] = 1.0
+# Marges de sécurité testées pour couvrir l'erreur de prévision du modèle.
+# Backtest du modèle final (42 semaines) : RMSE débit ≈ 109 véh/h (≈ 20 %).
+# Le temps de service ne dépend pas du trafic : une erreur de x % sur la vitesse
+# ne pèse qu'environ x/2 % sur la productivité.
+MARGES_SENSIBILITE = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25]
 
 
 def jour_type_demande(date: pd.Timestamp) -> str:
@@ -65,7 +70,7 @@ def main(pred_path: str | None, out_dir: str) -> None:
     # Vitesse de référence "sans prévision" : moyenne 7h-22h de la zone sur la semaine
     v_moy = df[df.heure.between(7, 21)].groupby("arc")["v_parcours_kmh"].mean()
 
-    lignes, details = [], {}
+    lignes, details, sensib = [], {}, []
     for zone, (arc, vol) in ZONES.items():
         for date, g in df[df.arc == arc].groupby("date"):
             g = g.sort_values("heure")
@@ -95,6 +100,13 @@ def main(pred_path: str | None, out_dir: str) -> None:
             p1 = optimiser_planning(prod=prod, appr=appr, b2b_profil_fixe=PROFIL_B2B_ACTUEL, **kw)
             p2 = optimiser_planning(prod=prod, appr=appr, b2b_profil_fixe=None, **kw) if b2b_total > 0 else p1
 
+            # Sensibilité : S2 avec une marge de sécurité couvrant l'erreur de prévision
+            for m_s in MARGES_SENSIBILITE:
+                p2m = (optimiser_planning(prod=prod, appr=appr, b2b_profil_fixe=None, marge=m_s, **kw)
+                       if b2b_total > 0 else
+                       optimiser_planning(prod=prod, appr=appr, b2b_profil_fixe=PROFIL_B2B_ACTUEL, marge=m_s, **kw))
+                sensib.append({"marge": m_s, "cout": p2m.cout})
+
             for nom, plan, b2b_h in [("S0", p0, b2b_fixe), ("S0*", p0s, b2b_fixe),
                                      ("S1", p1, b2b_fixe), ("S2", p2, p2.b2b_par_heure)]:
                 r = evaluer(plan, b2c, b2b_h, prod, appr)
@@ -118,7 +130,11 @@ def main(pred_path: str | None, out_dir: str) -> None:
     synth["gain_vs_S0*_pct"] = 100 * (1 - synth["cout"] / synth.loc["S0*", "cout"])
     synth.round(2).to_csv(out / "synthese_scenarios.csv", sep=";")
     (out / "details.json").write_text(json.dumps(details, ensure_ascii=False))
+    sens = pd.DataFrame(sensib).groupby("marge")["cout"].sum().to_frame()
+    sens["gain_vs_S0*_pct"] = 100 * (1 - sens["cout"] / synth.loc["S0*", "cout"])
+    sens.round(1).to_csv(out / "sensibilite_marge.csv", sep=";")
     print(synth.round(2).to_string())
+    print("\nSensibilité de S2 à la marge de sécurité :\n", sens.round(1).to_string())
     print("\nMarges S0* nécessaires :\n", res[res.scenario == "S0*"][["zone", "date", "marge_S0*"]].to_string(index=False))
 
 
