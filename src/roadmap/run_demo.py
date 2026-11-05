@@ -3,7 +3,7 @@ Stream D · Démo bout-en-bout : prédictions trafic S+1 → planning livreurs o
 
 Usage :
     python -m src.roadmap.run_demo                                # prédictions synthétiques
-    python -m src.roadmap.run_demo --pred outputs/output_<groupe>.csv   # vraies prédictions
+    python -m src.roadmap.run_demo --pred outputs/output_<groupe>.csv --calage relatif   # vraies prédictions
 
 Compare 4 scénarios sur la semaine du 07/11 au 11/11 :
     S0  : planning actuel, sans prévision (productivité moyenne constante, +10 % de marge)
@@ -61,10 +61,10 @@ def evaluer(plan, b2c, b2b_h, prod, appr) -> dict:
             "heures_nuit": float(sum(plan.livreurs_presents()[h] for h in range(24) if tarif_horaire(h) > 10))}
 
 
-def main(pred_path: str | None, out_dir: str) -> None:
+def main(pred_path: str | None, out_dir: str, calage: str = "physique") -> None:
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    df = enrich(load_predictions(pred_path) if pred_path else synthetic_predictions())
+    df = enrich(load_predictions(pred_path) if pred_path else synthetic_predictions(), calage=calage)
     df.to_csv(out / "vitesses_predites.csv", sep=";", index=False)
 
     # Vitesse de référence "sans prévision" : moyenne 7h-22h de la zone sur la semaine
@@ -142,5 +142,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--pred", default=None, help="CSV output_<groupe>.csv (sinon prédictions synthétiques)")
     ap.add_argument("--out", default="outputs/stream_d")
+    ap.add_argument("--calage", choices=["physique", "relatif"], default="physique",
+                    help="relatif conseillé sur les vraies prédictions (voir traffic_to_time.py)")
     a = ap.parse_args()
-    main(a.pred, a.out)
+    main(a.pred, a.out, a.calage)
