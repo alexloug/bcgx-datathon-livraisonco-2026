@@ -33,7 +33,8 @@ Les tests : `python -m pytest -q tests`.
 | Champs reconstruits par le capteur voisin | le capteur 4264 est muet depuis le 19/11/2025 ; sans lui, l'arc n'aurait ni cible ni lag | débit 46 véh/h d'erreur (6 %), occupation 27 % ; [2_donnees](docs/2_donnees.md) §2 |
 | Lags en heure de Paris | un décalage de 24 h × n sur la grille UTC vise une heure fausse après le changement d'heure | 07/11 08:00 visait 17/10 09:00 (322 au lieu de 237) ; 0 écart après correction ; [2_donnees](docs/2_donnees.md) §2 |
 | XGBoost seul | LightGBM fait jeu égal, le réseau de neurones perd | LightGBM à 0-3 %, 3× plus lent ; MLP +5 à +15 % de RMSE sur le débit ; [exploration/README](exploration/README.md) |
-| Réglages par défaut | profondeur et régularisation testées ne font pas mieux | score relatif 0,772 / 0,771 contre 0,771 ; [3_modele](docs/3_modele.md) §4 |
+| Réglages par défaut | profondeur, régularisation et recherche aléatoire d'hyperparamètres ne font pas mieux que le bruit | score relatif 0,772 / 0,771 contre 0,771 ; 44 combinaisons tirées au hasard : les 10 meilleures à moins de 1,7 % les unes des autres ; [3_modele](docs/3_modele.md) §4, [exploration/README](exploration/README.md) |
+| Samedi 07/11 corrigé à la main (`--manif`) | grosse manifestation annoncée ; le modèle ne peut pas l'apprendre (événements : 1 % de son importance) | samedis de manifestation d'octobre 2026 : prédictions trop hautes de 12 h à 23 h (rapport jusqu'à 0,42) ; facteurs vérifiés sur l'autre samedi : erreur −22 à −48 % ; [4_rendu](docs/4_rendu.md) §1 |
 | Météo observée et chantiers écartés | la météo observée est inconnue à la prédiction ; les chantiers ne gagnent qu'un fold sur deux | débit avec / sans chantiers : 193/193, 91/89, 79/78 ; [3_modele](docs/3_modele.md) §4 |
 | Heures « Barré » | à compléter avec Victor | à compléter |
 
@@ -60,12 +61,12 @@ Les heures « Barré » (fermetures de rue, dont la cérémonie du 11/11 aux Cha
 src/config.py            arcs, chemins, fenêtre, décalage minimum de 144 h
 src/data/                collecte (update.py, sources/), dataset complet (build_dataset.py), export contrôlé (export_dataset.py)
 src/features/build.py    calendrier et historique décalé, en heure de Paris
-src/models/              baseline, xgb, prétraitement ; registry.py liste les modèles
+src/models/              baseline, xgb, ensemble (XGBoost + LightGBM), prétraitement ; registry.py liste les modèles
 src/evaluate.py          backtest 24 h, comparaison à la baseline
 src/predict.py           point d'entrée : --refresh, prédiction, contrôle du format BCG
 tests/                   tests du dataset, du backtest, des modèles et du format
 docs/                    1_probleme, 2_donnees, 3_modele, 4_rendu
-exploration/             pistes écartées (LightGBM, MLP, protocole stream 2, notebooks, docs d'origine)
+exploration/             pistes écartées (LightGBM seul, MLP, protocole stream 2, essais de Victor, notebooks, docs d'origine)
 data/, outputs/          données téléchargées (non versionnées) ; CSV de rendu et backtests
 ```
 
@@ -77,5 +78,5 @@ data/, outputs/          données téléchargées (non versionnées) ; CSV de re
 | Pétronille | événements saisis et vérifiés |
 | Alex | protocole de validation |
 | Danny | feuille de route |
-| Victor | modèle |
+| Victor | modèle : essais d'amélioration de XGBoost, modèle final, semaine du rendu |
 | Léopold | backtest et structure du dépôt |

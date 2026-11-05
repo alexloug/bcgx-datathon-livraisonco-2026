@@ -67,3 +67,23 @@ assert (pred[TARGETS] >= 0).all().all() and (pred['taux_occupation'] <= 100).all
     result = subprocess.run([sys.executable, "-c", code], cwd=Path(__file__).resolve().parents[1],
                             capture_output=True, text=True, timeout=120)
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_ensemble_fits_and_predicts_bounded_values():
+    code = """
+import runpy
+import pandas as pd
+from src.config import ARCS, TARGETS
+from src.models.registry import MODELS
+fake_dataset = runpy.run_path('tests/test_models.py')['fake_dataset']
+df = fake_dataset()
+cutoff = df['datetime'].max() - pd.Timedelta(days=6)
+start, end = cutoff + pd.Timedelta(hours=25), df['datetime'].max()
+pred = MODELS['ensemble'](graines=[0]).fit(df, cutoff).predict(df, cutoff, start, end)
+assert len(pred) == len(ARCS) * len(pd.date_range(start, end, freq='h'))
+assert not pred[TARGETS].isna().any().any()
+assert (pred[TARGETS] >= 0).all().all() and (pred['taux_occupation'] <= 100).all()
+"""
+    result = subprocess.run([sys.executable, "-c", code], cwd=Path(__file__).resolve().parents[1],
+                            capture_output=True, text=True, timeout=300)
+    assert result.returncode == 0, result.stdout + result.stderr

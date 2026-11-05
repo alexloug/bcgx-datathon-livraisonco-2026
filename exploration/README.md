@@ -1,10 +1,11 @@
 # Exploration : ce qu'on a testé et pourquoi on ne l'a pas retenu
 
 Tout ce dossier est hors du chemin du rendu (`src/`). Il garde la trace des pistes écartées, avec leurs chiffres.
-Le code déplacé ici n'est plus branché sur `src/models/registry.py` (qui ne connaît que `baseline` et `xgb`) :
+Le code déplacé ici n'est plus branché sur `src/models/registry.py` (qui connaît `baseline`, `xgb` et `ensemble`) :
 il sert de référence, pas de commande à relancer telle quelle. Pour rejouer un modèle, l'ajouter au registre
-(`"gbm": _factory("exploration.models.gbm", "GBMModel")`) et installer `lightgbm` ou `torch`.
-Ses tests : `python -m pytest exploration/tests`.
+(`"gbm": _factory("exploration.models.gbm", "GBMModel")`) et installer `torch` pour le MLP.
+Ses tests : `python -m pytest exploration/tests`. Les essais de Victor se relancent un par un :
+`python -m exploration.essais_victor.<script>`.
 
 ## Contenu
 
@@ -14,9 +15,28 @@ Ses tests : `python -m pytest exploration/tests`.
 | `experiments/`, `configs/` | Protocole de réglage / validation du stream 2 et ses configurations |
 | `notebooks/` | EDA, qualité des données, construction du dataset |
 | `data/` | Anciens constructeurs `build_traffic.py` et `build_external.py`, remplacés par `src/data/build_dataset.py` |
-| `docs/` | Les 13 documents d'origine, avant leur fusion en 4 dans `docs/` à la racine |
+| `docs/` | Les 13 documents d'origine, avant leur fusion en 4 dans `docs/` à la racine ; résultats détaillés des essais de Victor (`resultats_essais_victor.md`) |
+| `essais_victor/` | Une trentaine d'essais pour améliorer XGBoost (3-5/11), un script par famille ; voir son README |
 
 ## Ce qu'on a écarté
+
+### Essais d'amélioration de XGBoost (Victor, 3-5/11)
+Backtest qui rejoue le rendu, RMSE sur la fenêtre de 5 jours, 3 graines moyennées. Changer seulement la graine fait
+varier la RMSE de 1,7 à 2,6 % : un gain plus petit est du bruit. Règle : gain moyen ≥ 1 %, ≥ 65 % des
+(jeudi, arc, cible) gagnés, aucun groupe de jeudis < −2 %, aucun couple (arc, cible) < −5 %. Gain positif = erreur
+plus faible. Tableau complet, avec le pourquoi de chaque décision : [docs/resultats_essais_victor.md](docs/resultats_essais_victor.md).
+
+| Famille | Pistes testées | Résultat |
+|---|---|---|
+| Découpage du modèle | un modèle par arc, par tranche horaire, par heure, par jour de semaine, spécial fériés | −0,5 à −77 % : chaque modèle a moins de données |
+| Données d'entraînement | poids au récent (demi-vie 6 mois à 2 ans), début en 2023 ou sur 12-24 mois, poids du proxy, retrait des jours anormaux, arcs voisins des Champs | −4 à +1 %, rien de stable |
+| Colonnes | retrait de la météo ou des grèves, données fraîches selon le jour prédit, profil médian | −0,5 à +1 %, dans le bruit |
+| Cible et perte | Huber, erreur absolue, log(1 + y), écart à la moyenne des lags, occupation tirée du débit prédit | −18 à +1,9 % ; les meilleurs perdent sur les semaines du 11/11 |
+| Réglage | `RandomizedSearchCV` (10 et 44 combinaisons), arrêt précoce, contraintes monotones | −6 à +4 % : hyperparamètres dans le bruit, le reste dégrade |
+| Combinaisons | Random Forest, XGBoost plus aléatoire, mélange avec la baseline | −7 à +1,7 % |
+
+Retenu et passé dans `src/` : la moyenne XGBoost + LightGBM sur 3 graines et le nettoyage des dérives du capteur
+d'occupation (`src/models/ensemble.py`), plus la correction du samedi de manifestation (`src/predict.py --manif`).
 
 ### LightGBM et réseau de neurones : XGBoost suffit
 Backtest du 04/11, mêmes données et mêmes features pour tous, RMSE de 6 h à 20 h, débit (véh/h) / occupation (points) :
