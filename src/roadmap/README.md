@@ -1,82 +1,57 @@
-# Stream D — Vision cible et feuille de route
+# Stream D : de la prévision du trafic au planning des livreurs
 
-Module qui transforme les prédictions de trafic du livrable 1 en planning de livreurs optimisé pour la semaine S+1. Il sert à chiffrer la feuille de route du livrable 2.
+Ce module transforme les prédictions de trafic du livrable 1 en un planning de livreurs pour la semaine S+1. Il sert à chiffrer le gain attendu de la feuille de route (livrable 2).
 
-## Contenu
+## Fichiers
 
 | Fichier | Rôle |
 |---|---|
-| `traffic_to_time.py` | D1 · débit + taux d'occupation → vitesse de parcours (v = q·L/τ, coefficient urbain 0,6). Contient aussi un générateur de prédictions de substitution au format exact du livrable 1. |
-| `staffing.py` | D2 · PLNE de planning (shifts de 4 à 8 h, 10 €/h de 8 h à 20 h, 14 €/h sinon), résolu avec `scipy.optimize.milp` (HiGHS). |
-| `run_demo.py` | Démo bout-en-bout : 4 scénarios (S0, S0*, S1, S2) sur 3 zones × 5 jours (07 → 11/11). |
+| `traffic_to_time.py` | Convertit débit et taux d'occupation en vitesse de parcours (km/h), par arc et par heure. Contient aussi un générateur de prédictions simulées au format du rendu. |
+| `staffing.py` | PLNE de planning : shifts de 4 à 8 h, 10 EUR/h de 8 h à 20 h et 14 EUR/h sinon. Résolu avec `scipy.optimize.milp` (solveur HiGHS). |
+| `run_demo.py` | Compare 4 scénarios sur 3 zones et 5 jours (07/11 -> 11/11), puis teste la sensibilité à la marge de sécurité. |
 
 ## Lancer
 
+Seuls `numpy`, `pandas` et `scipy` (>= 1.9) sont nécessaires.
+
 ```bash
-pip install numpy pandas scipy        # scipy >= 1.9 pour milp
-# avec des prédictions de substitution
+# sur nos prédictions (recommandé)
+python -m src.roadmap.run_demo --pred output_victor.csv --calage relatif --out outputs/stream_d/victor
+# sur du trafic simulé
 python -m src.roadmap.run_demo
-# avec nos vraies prédictions (fichier du rendu, séparateur ;)
-python -m src.roadmap.run_demo --pred outputs/output_<groupe>.csv
 ```
 
-Durée : environ 2 minutes, surtout à cause de la recherche de la marge S0*.
+Le calcul prend environ 2 minutes. Les résultats sont écrits dans le dossier `--out` :
 
-Sorties dans `outputs/stream_d/` :
-- `synthese_scenarios.csv` : coût, heures livreurs, retards et gain par scénario
-- `resultats_par_zone_jour.csv` : le détail par zone et par jour
-- `vitesses_predites.csv` : vitesses et types de jour
-- `details.json` : profils horaires et shifts retenus, pour les graphiques
+- `synthese_scenarios.csv` : coût, heures de livreurs, livraisons hors créneau et gain de chaque scénario ;
+- `sensibilite_marge.csv` : coût de S2 selon la marge de sécurité ;
+- `resultats_par_zone_jour.csv`, `vitesses_predites.csv`, `details.json` : détail par zone, par jour et par heure.
 
 ## Scénarios
 
-- **S0** : planning actuel simulé. Productivité moyenne constante et marge de 10 %.
-- **S0\*** : même logique, avec la plus petite marge qui évite tout retard. C'est la référence « à service égal ».
-- **S1** : shifts calés sur la vitesse prédite heure par heure. Le B2B reste livré de 8 h à 18 h.
-- **S2** : S1, avec l'heure des livraisons B2B laissée à l'optimiseur (fenêtre 6 h-19 h).
+- **S0** : planning actuel simulé. Le planificateur ne connaît que la vitesse moyenne de la semaine et prend 10 % de marge.
+- **S0\*** : même logique, avec la plus petite marge qui évite toute livraison hors créneau. C'est la référence à service égal.
+- **S1** : shifts calés heure par heure sur la vitesse prédite. Le B2B reste livré de 8 h à 18 h.
+- **S2** : S1, en laissant l'optimiseur choisir l'heure des livraisons B2B entre 6 h et 19 h.
 
-## Résultats actuels (prédictions de substitution)
+## Résultats sur nos prédictions (modèle final, 05/11)
 
-| Scénario | Coût / livraison | Livraisons hors créneau | Gain vs S0* |
-|---|---|---|---|
-| S0* | 1,94 € | 0 % | — |
-| S0 | 1,72 € | 2,0 % | (service dégradé) |
-| S1 | 1,70 € | 0 % | −12 % |
-| S2 | 1,56 € | 0 % | −19 % |
-
-## Résultats sur les prédictions du modèle final (output de Victor, 05/11)
-
-```bash
-python -m src.roadmap.run_demo --pred output_victor.csv --calage relatif --out outputs/stream_d/victor
-```
-
-Sur ces prédictions, la formule v = q·L/τ avec L = 5,5 m sature (> 50 km/h) sur la Convention, dont le taux d'occupation reste sous 6 % en journée. Le calage `relatif` ne garde que la variation de q/τ dans la semaine (par arc), ancrée sur la vitesse libre de 30 km/h × 0,6. Les vitesses obtenues vont de 5 à 18 km/h, avec des creux aux heures de pointe et le matin du 11/11 sur les Champs-Élysées.
-
-| Scénario | Coût / livraison | Gain vs S0* |
+| Scénario | Coût par livraison | Gain par rapport à S0\* |
 |---|---|---|
-| S0* (actuel, zéro retard) | 2,10 € | — |
-| S0 (actuel, marge 10 %) | 1,93 € (1,5 % hors créneau) | — |
-| S1 | 1,81 € | −13,9 % |
-| S2 | 1,69 € | −19,6 % |
-| S2 + marge 10 % | — | −11,8 % |
+| S0\* | 2,10 EUR | référence |
+| S0 | 1,93 EUR, avec 1,5 % de livraisons hors créneau | non comparable |
+| S1 | 1,81 EUR | -13,9 % |
+| S2 | 1,69 EUR | -19,6 % |
+| S2 avec 10 % de marge | | -11,8 % |
 
-Fichiers : `outputs/stream_d/victor/synthese_scenarios.csv` et `sensibilite_marge.csv`.
+Sur le trafic simulé, on obtient -12,2 %, -19,3 % et -11,7 % : le résultat ne dépend pas de la source du trafic.
 
-## Prise en compte de l'erreur du modèle de trafic
+## Choix de modélisation
 
-Backtest du modèle final (ensemble XGBoost + LightGBM, 42 semaines, voir `pour_dannyl.csv` sur la branche de Victor) : RMSE débit ≈ 109 véh/h (≈ 20 % d'erreur relative), RMSE occupation ≈ 4,5 points.
+**Calage des vitesses.** La vitesse au capteur vaut v = q * L / tau, avec L la longueur d'un véhicule plus celle de la boucle (environ 5,5 m). Sur nos prédictions, le taux d'occupation de la Convention reste sous 6 % en journée, et cette formule donne plus de 50 km/h. Le calage `relatif` ne garde donc que la variation de q / tau dans la semaine, rapportée à son niveau en circulation libre (95e centile par arc) et ancrée sur 30 km/h * 0,6 = 18 km/h. Les vitesses obtenues vont de 5 à 18 km/h. Le calage absolu demandera les traces GPS des livreurs.
 
-Le temps de service à la porte (4 min) ne dépend pas du trafic. Une erreur de x % sur la vitesse ne se reporte donc qu'à environ x/2 % sur la productivité d'un livreur. `sensibilite_marge.csv` donne le coût de S2 selon la marge de sécurité ajoutée :
+**Marge de sécurité.** En backtest, le modèle final se trompe d'environ 20 % sur le débit (RMSE de 109 véh/h, voir `pour_dannyl.csv`). Le temps de service à la porte ne dépend pas du trafic, donc une erreur de x % sur la vitesse ne pèse qu'environ x / 2 % sur la productivité. Nous retenons 10 % de marge. Le gain disparaît vers 25 %.
 
-| Marge de sécurité | Gain vs S0* |
-|---|---|
-| 0 % | −19,3 % |
-| 5 % | −15,9 % |
-| 10 % (retenue) | −11,7 % |
-| 15 % | −7,7 % |
-| 20 % | −4,0 % |
-| 25 % | −0,6 % |
+## Hypothèses à remplacer par les données de LivraisonCo
 
-## Hypothèses à remplacer
-
-Toutes les hypothèses sont en tête de `staffing.py`, `traffic_to_time.py` et `run_demo.py`. La liste figure dans l'annexe A3 du deck : temps de service 4 min, 0,6 km entre deux livraisons, dépôt à 7 km, volumes 700 / 600 / 450 livraisons par jour ouvré, 40 % de B2B flexible.
+Elles sont définies en tête de `staffing.py`, `traffic_to_time.py` et `run_demo.py` : 4 min de service par livraison, 0,6 km entre deux livraisons, dépôt à 7 km, 700 / 600 / 450 livraisons par jour ouvré selon la zone, 40 % de B2B flexible les jours ouvrés.
