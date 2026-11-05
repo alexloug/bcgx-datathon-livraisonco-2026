@@ -112,7 +112,7 @@ def predict(model_name: str, group: str, manif: str | None = None) -> pd.DataFra
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="xgb", choices=list(MODELS))
+    parser.add_argument("--model", default="ensemble", choices=list(MODELS))
     parser.add_argument("--group", required=True, help="nom du groupe, utilisé dans output_<groupe>.csv")
     parser.add_argument("--refresh", action="store_true", help="met à jour trafic et météo puis reconstruit le dataset")
     parser.add_argument("--manif", metavar="AAAA-MM-JJ", help="jour de manifestation : prédictions baissées de 12 h à 23 h")

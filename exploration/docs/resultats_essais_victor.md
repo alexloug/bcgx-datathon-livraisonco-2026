@@ -98,7 +98,18 @@ Dans les tableaux, un gain positif veut dire que l'erreur baisse.
 
 ## Résultat du modèle final
 
-<!-- complété par le backtest du modèle final -->
+Backtest sur 29 jeudis (réguliers 2022-2024, sept.-oct. 2026, semaines du 11/11), modèle final (3 XGBoost + 3 LightGBM,
+occupation nettoyée) contre le XGBoost d'origine. RMSE sur la fenêtre de 5 jours, gain positif = erreur plus faible.
+
+| Arc | Débit : origine → final | Occupation : origine → final |
+|---|---|---|
+| Champs-Elysées | 174,2 → 171,2 (+1,7 %) | 8,61 → 8,12 (+5,7 %) |
+| Convention | 73,2 → 71,8 (+2,0 %) | 2,84 → 2,70 (+4,8 %) |
+| Saint-Pères | 78,9 → 78,4 (+0,7 %) | 2,21 → 2,07 (+6,2 %) |
+
+Par groupe de jeudis : réguliers 2022-2024 +2,0 %, semaines du 11/11 +2,5 %, sept.-oct. 2026 +0,8 %. Le final fait mieux
+sur 71 % des (jeudi, arc, cible) et sur les 6 couples. Gain modeste (le bruit d'une graine est de 2 à 3 %), mais régulier :
+`ensemble` devient le modèle par défaut de `src/predict.py`.
 
 ## La semaine du rendu (7 au 11/11/2026)
 

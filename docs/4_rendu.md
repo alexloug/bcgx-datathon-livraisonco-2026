@@ -10,7 +10,7 @@ python -m src.predict --group <nom_du_groupe> --refresh
 ```
 
 `--refresh` enchaîne : mise à jour du trafic et de la prévision météo, `build_dataset`, `export_dataset` (contrôles
-bloquants), prédiction XGBoost, test du format BCG, écriture de `outputs/output_<groupe>.csv` (360 lignes, `sep=";"`).
+bloquants), prédiction (modèle `ensemble`), test du format BCG, écriture de `outputs/output_<groupe>.csv` (360 lignes, `sep=";"`).
 La commande échoue avec un message clair si une source manque, si la mise à jour échoue ou si un contrôle échoue ;
 dans ce dernier cas, aucun CSV n'est écrit.
 
