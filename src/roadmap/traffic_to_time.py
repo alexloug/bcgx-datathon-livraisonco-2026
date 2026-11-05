@@ -41,6 +41,23 @@ def vitesse_parcours_kmh(debit: pd.Series, taux_occupation_pct: pd.Series) -> pd
     return vitesse_capteur_kmh(debit, taux_occupation_pct) * ALPHA_URBAIN
 
 
+# --- Calage relatif (utilisé sur les vraies prédictions) -------------------
+# Sur les capteurs parisiens, le taux d'occupation est souvent très bas : la
+# formule v = q·L/τ avec L = 5,5 m sature (> 50 km/h) sur certains arcs. Le calage
+# absolu de L demandera des traces GPS (phase 2). En attendant, on ne garde que
+# la variation relative de q/τ dans la semaine, ancrée sur la vitesse libre :
+#   v_parcours = V_LIBRE × ALPHA × min(1, (q/τ) / quantile_95%(q/τ) de l'arc)
+V_LIBRE_KMH = 30.0      # vitesse limite à Paris (30 km/h depuis 2021)
+QUANTILE_LIBRE = 0.95   # niveau de q/τ considéré comme « circulation libre »
+
+
+def vitesse_parcours_relative(df: pd.DataFrame) -> pd.Series:
+    """Vitesse de parcours (km/h) à partir de la variation relative de q/τ par arc."""
+    ratio = df["debit_horaire"] / (df["taux_occupation"] / 100.0).clip(lower=1e-3)
+    ref = ratio.groupby(df["arc"]).transform(lambda s: s.quantile(QUANTILE_LIBRE))
+    return (V_LIBRE_KMH * ALPHA_URBAIN * (ratio / ref).clip(upper=1.0)).clip(lower=V_MIN)
+
+
 def load_predictions(path: str | Path) -> pd.DataFrame:
     """Lit le fichier output_<groupe>.csv produit par les streams B/C."""
     df = pd.read_csv(path, sep=";", index_col=0)
@@ -98,11 +115,18 @@ def synthetic_predictions(start: str = "2026-11-07", days: int = 5, seed: int = 
     return pd.DataFrame(rows, columns=["arc", "datetime", "debit_horaire", "taux_occupation"])
 
 
-def enrich(df: pd.DataFrame) -> pd.DataFrame:
-    """Ajoute vitesses et type de jour au DataFrame de prédictions."""
+def enrich(df: pd.DataFrame, calage: str = "physique") -> pd.DataFrame:
+    """Ajoute vitesses et type de jour au DataFrame de prédictions.
+
+    calage = "physique" : v = q·L/τ × ALPHA (profils simulés)
+    calage = "relatif"  : variation relative de q/τ ancrée sur 30 km/h (vraies prédictions)
+    """
     out = df.copy()
     out["v_capteur_kmh"] = vitesse_capteur_kmh(out["debit_horaire"], out["taux_occupation"])
-    out["v_parcours_kmh"] = vitesse_parcours_kmh(out["debit_horaire"], out["taux_occupation"])
+    if calage == "relatif":
+        out["v_parcours_kmh"] = vitesse_parcours_relative(out)
+    else:
+        out["v_parcours_kmh"] = vitesse_parcours_kmh(out["debit_horaire"], out["taux_occupation"])
     out["date"] = out["datetime"].dt.date
     out["heure"] = out["datetime"].dt.hour
     out["type_jour"] = out["datetime"].apply(type_de_jour)
