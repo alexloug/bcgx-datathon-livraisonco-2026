@@ -44,6 +44,24 @@ Sorties dans `outputs/stream_d/` :
 | S1 | 1,70 € | 0 % | −12 % |
 | S2 | 1,56 € | 0 % | −19 % |
 
+## Résultats sur les prédictions du modèle final (output de Victor, 05/11)
+
+```bash
+python -m src.roadmap.run_demo --pred output_victor.csv --calage relatif --out outputs/stream_d/victor
+```
+
+Sur ces prédictions, la formule v = q·L/τ avec L = 5,5 m sature (> 50 km/h) sur la Convention, dont le taux d'occupation reste sous 6 % en journée. Le calage `relatif` ne garde que la variation de q/τ dans la semaine (par arc), ancrée sur la vitesse libre de 30 km/h × 0,6. Les vitesses obtenues vont de 5 à 18 km/h, avec des creux aux heures de pointe et le matin du 11/11 sur les Champs-Élysées.
+
+| Scénario | Coût / livraison | Gain vs S0* |
+|---|---|---|
+| S0* (actuel, zéro retard) | 2,10 € | — |
+| S0 (actuel, marge 10 %) | 1,93 € (1,5 % hors créneau) | — |
+| S1 | 1,81 € | −13,9 % |
+| S2 | 1,69 € | −19,6 % |
+| S2 + marge 10 % | — | −11,8 % |
+
+Fichiers : `outputs/stream_d/victor/synthese_scenarios.csv` et `sensibilite_marge.csv`.
+
 ## Prise en compte de l'erreur du modèle de trafic
 
 Backtest du modèle final (ensemble XGBoost + LightGBM, 42 semaines, voir `pour_dannyl.csv` sur la branche de Victor) : RMSE débit ≈ 109 véh/h (≈ 20 % d'erreur relative), RMSE occupation ≈ 4,5 points.
