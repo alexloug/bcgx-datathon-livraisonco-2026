@@ -44,6 +44,21 @@ Sorties dans `outputs/stream_d/` :
 | S1 | 1,70 € | 0 % | −12 % |
 | S2 | 1,56 € | 0 % | −19 % |
 
+## Prise en compte de l'erreur du modèle de trafic
+
+Backtest du modèle final (ensemble XGBoost + LightGBM, 42 semaines, voir `pour_dannyl.csv` sur la branche de Victor) : RMSE débit ≈ 109 véh/h (≈ 20 % d'erreur relative), RMSE occupation ≈ 4,5 points.
+
+Le temps de service à la porte (4 min) ne dépend pas du trafic. Une erreur de x % sur la vitesse ne se reporte donc qu'à environ x/2 % sur la productivité d'un livreur. `sensibilite_marge.csv` donne le coût de S2 selon la marge de sécurité ajoutée :
+
+| Marge de sécurité | Gain vs S0* |
+|---|---|
+| 0 % | −19,3 % |
+| 5 % | −15,9 % |
+| 10 % (retenue) | −11,7 % |
+| 15 % | −7,7 % |
+| 20 % | −4,0 % |
+| 25 % | −0,6 % |
+
 ## Hypothèses à remplacer
 
 Toutes les hypothèses sont en tête de `staffing.py`, `traffic_to_time.py` et `run_demo.py`. La liste figure dans l'annexe A3 du deck : temps de service 4 min, 0,6 km entre deux livraisons, dépôt à 7 km, volumes 700 / 600 / 450 livraisons par jour ouvré, 40 % de B2B flexible.
