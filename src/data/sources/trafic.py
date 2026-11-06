@@ -95,16 +95,21 @@ def open_member(zf: zipfile.ZipFile, zip_path, member: str):
         yield f
 
 
-def read_archive(zip_path, streets=STREETS) -> pd.DataFrame:
-    """Lit les fichiers hebdomadaires d'un zip annuel et ne garde que les lignes de nos rues."""
+def read_archive(zip_path, streets=STREETS, arc_ids: list[str] | None = None) -> pd.DataFrame:
+    """Lit les fichiers hebdomadaires d'un zip annuel et ne garde que les lignes de nos rues,
+    ou, si `arc_ids` est donné, celles de ces arcs (premier champ, `iu_ac`)."""
     keys = [s.encode() for s in streets]
+    ids = {a.encode() for a in arc_ids} if arc_ids else None
     header, rows = None, []
     with zipfile.ZipFile(zip_path) as zf:
         for member in sorted(zf.namelist()):
             with open_member(zf, zip_path, member) as f:
                 header = f.readline()
                 for line in f:
-                    if any(k in line for k in keys) and any(k in line.split(b";", 2)[1] for k in keys):
+                    if ids is not None:
+                        if line.split(b";", 1)[0].strip(b'"') in ids:
+                            rows.append(line)
+                    elif any(k in line for k in keys) and any(k in line.split(b";", 2)[1] for k in keys):
                         rows.append(line)
     if not rows:
         return pd.DataFrame(columns=COLUMNS)
@@ -127,18 +132,19 @@ def read_archive(zip_path, streets=STREETS) -> pd.DataFrame:
     return out.dropna(subset=["datetime"]).drop_duplicates(["arc_id", "datetime"], keep="last")[COLUMNS]
 
 
-def update_year(year: int) -> pd.DataFrame:
-    tmp = HISTORY_DIR / f"_{year}.zip"
+def update_year(year: int, out_dir=HISTORY_DIR, arc_ids: list[str] | None = None) -> pd.DataFrame:
+    """`arc_ids` : filtre par arc au lieu des rues de STREETS (arcs similaires)."""
+    tmp = out_dir / f"_{year}.zip"
     try:
         with requests.get(HISTORY_URL.format(year=year), stream=True, timeout=600) as resp:
             resp.raise_for_status()
             with open(tmp, "wb") as f:
                 for chunk in resp.iter_content(chunk_size=1 << 20):
                     f.write(chunk)
-        df = read_archive(tmp)
+        df = read_archive(tmp, arc_ids=arc_ids)
     finally:
         tmp.unlink(missing_ok=True)
-    df.to_parquet(HISTORY_DIR / f"{year}.parquet", index=False)
+    df.to_parquet(out_dir / f"{year}.parquet", index=False)
     return df
 
 
