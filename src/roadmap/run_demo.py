@@ -199,8 +199,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--pred", default=None,
                         help="CSV de prédictions au format du rendu (sinon trafic simulé)")
-    parser.add_argument("--out", default="outputs/stream_d")
+    parser.add_argument("--out", default=None,
+                        help="dossier de sortie (outputs/stream_d par défaut, trafic_simule/ sans --pred)")
     parser.add_argument("--calage", choices=["physique", "relatif"], default="physique",
                         help="relatif conseillé sur les vraies prédictions (voir traffic_to_time.py)")
     args = parser.parse_args()
-    main(args.pred, args.out, args.calage)
+    # Sans --pred, les résultats sur trafic simulé ne doivent pas écraser ceux sur nos prédictions.
+    out_dir = args.out or ("outputs/stream_d" if args.pred else "outputs/stream_d/trafic_simule")
+    main(args.pred, out_dir, args.calage)
