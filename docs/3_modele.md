@@ -1,24 +1,37 @@
-# 3. Le modèle : XGBoost, protocole de validation, pistes écartées
+# 3. Le modèle : ensemble XGBoost + LightGBM, protocole de validation, pistes écartées
 
-Code : `src/models/preprocessing.py` (retraitement), `src/models/xgb.py` (modèle, nom `xgb`), `src/models/baseline.py`,
-`src/evaluate.py` (backtest). Les modèles et protocoles écartés sont dans `exploration/`.
+Code : `src/models/ensemble.py` (modèle final, nom `ensemble`, par défaut dans `predict.py`), `src/models/xgb.py` (XGBoost
+seul, nom `xgb`), `src/models/baseline.py`, `src/evaluate.py` (backtest). Les modèles et protocoles écartés, et les
+essais de Victor, sont dans `exploration/`.
 
 ## 1. Le modèle retenu
 
-1. **Features** : les 44 du dataset livré (voir 2_donnees.md), plus 4 ajoutées par le prétraitement.
-2. **NaN** : imputés sans fuite, appris sur les lignes ≤ cutoff (voir 2_donnees.md §5).
-3. **Modèle** : un `XGBRegressor` par cible, les 3 arcs ensemble (indicatrices d'arc), sur les heures valides ≤ cutoff,
-   y compris les heures reconstruites des Champs (`proxy_weight`, 1 par défaut). 600 arbres, profondeur 6, taux
-   d'apprentissage 0,05, sous-échantillonnage 0,8 : **réglages par défaut, jamais optimisés**.
+1. **Features** : les 44 du dataset livré (voir 2_donnees.md) ; la rue est encodée en indicatrices. Les NaN sont laissés
+   à XGBoost et LightGBM, qui savent les gérer (même score que l'imputation du prétraitement, écart < 2 %).
+2. **Modèle** : par cible, la **moyenne de 6 modèles** : 3 XGBoost et 3 LightGBM (3 graines chacun), les 3 arcs ensemble,
+   sur les heures valides ≤ cutoff, heures reconstruites des Champs comprises. 600 arbres, taux d'apprentissage 0,05,
+   sous-échantillonnage 0,8 : **réglages par défaut** (profondeur 6 pour XGBoost, 63 feuilles pour LightGBM), car aucune
+   recherche n'a fait mieux que le bruit (voir §4).
+3. **Occupation nettoyée** : pour l'occupation seulement, on retire de l'entraînement les jours où le capteur dérive
+   (occupation > 60 % au-dessus de l'habituel alors que le débit reste à moins de 20 % de l'habituel), plus 3 épisodes
+   repérés à la main. Le débit n'est pas touché.
 4. **Post-traitement** : prédictions bornées à ≥ 0, occupation ≤ 100 %.
 
+Gains de l'ensemble sur le XGBoost d'origine (29 jeudis : réguliers 2022-2024, sept.-oct. 2026, semaines du 11/11) :
+débit +0,7 à +2,0 %, occupation +4,8 à +6,2 % selon l'arc ; meilleur sur 71 % des (jeudi, arc, cible) et sur les 6 couples.
+Le gain est modeste (le bruit d'une graine est de 2 à 3 %) mais régulier, et vient surtout de 2022-2024 pour le
+nettoyage (nul sur 2026 et sur le 11/11). Détail : `exploration/docs/resultats_essais_victor.md`.
+
+**Option `--manif AAAA-MM-JJ`** de `predict.py` : multiplie les prédictions d'une journée de manifestation de 12 h à 23 h
+(× 0,65 Champs et Saint-Pères, × 0,8 Convention). **Désactivée par défaut** : à n'utiliser que si la manifestation est
+confirmée (appliquée à tort un samedi normal, elle double l'erreur ; voir 4_rendu.md).
+
 Baseline de référence : moyenne des 4 dernières semaines, même jour et même heure. Elle ignore les jours fériés ;
-XGBoost les apprend grâce à `ferie` et au lag 52 semaines (sur le 11/11 seul : débit Convention 154 → 67, Saint-Pères
-128 → 62, Champs 344 → 259).
+les modèles les apprennent grâce à `ferie` et au lag 52 semaines (sur le 11/11 seul, XGBoost : débit Convention
+154 → 67, Saint-Pères 128 → 62, Champs 344 → 259).
 
 Variables les plus utilisées (débit) : moyenne des lags S-1/S-2/S-3 (68 %), lag S-1, lag 52 semaines, férié, vacances,
-JO 2024. Imputer les NaN ou les laisser à XGBoost donne des RMSE équivalentes (écart < 2 %) ; on garde l'imputation,
-qui rend le pipeline indépendant du modèle. Un poids de 0,5 sur les heures proxy ne change rien non plus.
+JO 2024. Un poids de 0,5 sur les heures proxy ne change rien.
 
 ## 2. Protocole de validation
 
@@ -65,9 +78,9 @@ On n'a qu'un rendu : une feature qui aide en 2023 mais pas en 2026 est un pari. 
 
 | Piste | Résultat | Décision |
 |---|---|---|
-| LightGBM | ≈ XGBoost (écart 0 à 3 %), 3 fois plus lent (9,5 s contre 3 s par cutoff) | écarté |
+| LightGBM seul | ≈ XGBoost (écart 0 à 3 %), 3 fois plus lent (9,5 s contre 3 s par cutoff) | écarté seul ; entre dans l'ensemble |
 | Réseau dense (MLP) | +5 à +15 % de RMSE sur le débit, instable selon la graine (±5 %) | écarté |
-| Moyenne XGBoost + LightGBM + MLP | gagne 1 à 2 % (183 / 9,2 contre 186 / 9,5, Champs) | écarté |
+| Moyenne XGBoost + LightGBM + MLP | gagne 1 à 2 % (183 / 9,2 contre 186 / 9,5, Champs) | MLP écarté ; XGBoost + LightGBM retenu (§1) |
 | Profondeur 4, régularisation renforcée | score relatif 0,772 / 0,771 contre 0,771 pour la référence | écarté |
 | Sans météo prévue | 0,772 contre 0,771 | pas de gain à la retirer ; gardée (neige) |
 | Sans événements | 0,785 contre 0,771 : dégrade | gardés |
@@ -111,7 +124,7 @@ mélangé (Champs +3 %, Saint-Pères -4 %), dans le bruit d'un si petit échanti
 
 - **Champs-Elysées** : l'erreur est dominée par la cible elle-même, reconstruite par proxy ; l'occupation des Champs est
   la prédiction la moins sûre.
-- Hyperparamètres non optimisés (Victor y travaille) : prudence sur le surapprentissage des quelques semaines de réglage.
+- Hyperparamètres : non optimisés au final ; 44 combinaisons tirées au hasard donnent des RMSE à moins de 1,7 % les unes des autres (bruit d'une graine : 2 à 3 %).
 - Seul gain stable mesuré : entraîner sur les arcs voisins de la rue des Champs (occupation des Champs -6 à -9 %, 3
   cutoffs sur 4), avec un modèle simplifié, non retenu faute de temps et de reconfirmation avec le XGBoost du dépôt.
 - Prédire le couple de façon cohérente (occupation à partir du débit prédit) ; intervalles P10-P90 par créneau.

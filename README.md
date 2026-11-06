@@ -21,7 +21,7 @@ Les tests : `python -m pytest -q tests`.
 
 1. **Données** : trafic Paris open data depuis le 21/06/2021, nettoyé sans interpolation ; le capteur muet des Champs-Elysées est reconstruit par le capteur voisin ; calendrier, vacances, fériés, événements saisis à la main, météo prévue ([docs/2_donnees.md](docs/2_donnees.md)).
 2. **Features** : calendrier, historique décalé d'au moins 144 h (S-1 à S-3, niveau 28 j, 52 semaines) en heure de Paris, vacances, météo prévue, événements, régimes : 44 colonnes sans fuite possible.
-3. **Modèle** : un XGBoost par cible, réglages par défaut, comparé à une baseline saisonnière ([docs/3_modele.md](docs/3_modele.md)).
+3. **Modèle** : ensemble de 3 XGBoost et 3 LightGBM (réglages par défaut) par cible, occupation nettoyée des dérives du capteur, comparé à une baseline saisonnière ([docs/3_modele.md](docs/3_modele.md)).
 4. **Validation** : backtest qui rejoue le rendu (cutoff le jeudi 23 h, 1 jour sauté, 5 jours prédits), RMSE sur 24 h, sur les 8 derniers jeudis et 34 semaines contenant un férié.
 
 ## Décisions
@@ -32,7 +32,7 @@ Les tests : `python -m pytest -q tests`.
 | Pas d'interpolation | les trous sont des blocs de plusieurs semaines, qu'aucune interpolation ne rend crédibles | Convention absente 7 mois (11/2022), Saint-Pères 11 mois (11/2024) ; [2_donnees](docs/2_donnees.md) §3 |
 | Champs reconstruits par le capteur voisin | le capteur 4264 est muet depuis le 19/11/2025 ; sans lui, l'arc n'aurait ni cible ni lag | débit 46 véh/h d'erreur (6 %), occupation 27 % ; [2_donnees](docs/2_donnees.md) §2 |
 | Lags en heure de Paris | un décalage de 24 h × n sur la grille UTC vise une heure fausse après le changement d'heure | 07/11 08:00 visait 17/10 09:00 (322 au lieu de 237) ; 0 écart après correction ; [2_donnees](docs/2_donnees.md) §2 |
-| XGBoost seul | LightGBM fait jeu égal, le réseau de neurones perd | LightGBM à 0-3 %, 3× plus lent ; MLP +5 à +15 % de RMSE sur le débit ; [exploration/README](exploration/README.md) |
+| Ensemble XGBoost + LightGBM | les deux boostings font des erreurs un peu différentes, la moyenne gagne 1 à 2 % de façon régulière | 29 semaines de backtest, 71 % des cas gagnés ; [exploration/docs/resultats_essais_victor.md](exploration/docs/resultats_essais_victor.md) |
 | Réglages par défaut | profondeur, régularisation et recherche aléatoire d'hyperparamètres ne font pas mieux que le bruit | score relatif 0,772 / 0,771 contre 0,771 ; 44 combinaisons tirées au hasard : les 10 meilleures à moins de 1,7 % les unes des autres ; [3_modele](docs/3_modele.md) §4, [exploration/README](exploration/README.md) |
 | Samedi 07/11 corrigé à la main (`--manif`) | grosse manifestation annoncée ; le modèle ne peut pas l'apprendre (événements : 1 % de son importance) | samedis de manifestation d'octobre 2026 : prédictions trop hautes de 12 h à 23 h (rapport jusqu'à 0,42) ; facteurs vérifiés sur l'autre samedi : erreur −22 à −48 % ; [4_rendu](docs/4_rendu.md) §1 |
 | Météo observée et chantiers écartés | la météo observée est inconnue à la prédiction ; les chantiers ne gagnent qu'un fold sur deux | débit avec / sans chantiers : 193/193, 91/89, 79/78 ; [3_modele](docs/3_modele.md) §4 |
@@ -66,6 +66,7 @@ src/evaluate.py          backtest 24 h, comparaison à la baseline
 src/predict.py           point d'entrée : --refresh, prédiction, contrôle du format BCG
 tests/                   tests du dataset, du backtest, des modèles et du format
 docs/                    1_probleme, 2_donnees, 3_modele, 4_rendu
+roadmap/                 feuille de route de Danny : des prédictions au planning de livraison (hors rendu du modèle)
 exploration/             pistes écartées (LightGBM seul, MLP, protocole stream 2, essais de Victor, notebooks, docs d'origine)
 data/, outputs/          données téléchargées (non versionnées) ; CSV de rendu et backtests
 ```
