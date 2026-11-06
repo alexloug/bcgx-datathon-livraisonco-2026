@@ -36,9 +36,11 @@ prédire, cibles présentes sur la fenêtre, cible hors bornes, feature exclue p
 1. Entraîner sur `is_valid` et `datetime <= cutoff`. `is_valid` = les deux cibles présentes (mesurées ou reconstruites),
    hors heures « Invalide », « Barré », figées ou aberrantes.
 2. Prédire `partie == "a_predire"`.
-3. **Pas de fuite, sans rien recalculer** : toute feature de l'heure t n'utilise que des valeurs connues 144 h avant ou
-   plus. Un seul fichier sert à tous les backtests. Ne jamais ajouter de lag plus court que 144 h (`assert_no_leakage`).
-4. Les NaN des features historiques sont normaux (trous de capteur) ; le prétraitement les remplit sans fuite.
+3. **Respect de l'horizon pour l'historique** : les variables issues du trafic sont décalées d'au moins 144 h.
+   Calendrier, événements connus à l'avance et météo prévue sont traités séparément. Un seul fichier sert aux
+   backtests actuels, avec les limites de calibration décrites au §2. Les décalages sont contrôlés par `assert_no_leakage`.
+4. Les NaN des features historiques sont normaux (trous de capteur) ; les statistiques d'imputation du prétraitement
+   sont apprises sur les seules lignes antérieures ou égales au cutoff.
 5. Champs-Elysées après le 19/11/2025 : `source_cible == "proxy"`. Débit fiable (6 % d'erreur), **occupation beaucoup
    moins (≈ 27 %)** : c'est la prédiction la moins sûre des six.
 
@@ -95,10 +97,18 @@ entiers et `lag - 1 >= 144`. Vérifié sur la fenêtre du rendu : 0 écart entre
 à l'heure locale attendue. Effet sur la RMSE : dans le bruit (voir 3_modele.md) ; la correction est retenue parce
 qu'elle est exacte.
 
-### Une fuite résiduelle, assumée
+### Limites temporelles des backtests
 
-Les ratios du proxy des Champs sont appris sur toute la période (jusqu'au 19/11/2025). Elle ne touche que les heures
-`source_cible == "proxy"`, qu'on peut exclure de l'évaluation.
+Les ratios du proxy des Champs sont appris sur toute la période commune (jusqu'au 19/11/2025), et non à nouveau
+avec les seules données antérieures à chaque cutoff. Les seuils de valeurs aberrantes et la détection des séquences
+figées utilisent également la série complète. Le décalage des features ne suffit donc pas à garantir l'absence
+de fuite dans l'ensemble du pipeline.
+
+Les cibles reconstruites alimentent aussi les lags : exclure les lignes `source_cible == "proxy"` de l'évaluation
+ne supprime pas à lui seul cette limite. Pour des backtests historiques stricts, les ratios et seuils doivent être
+appris sur les seules données disponibles au cutoff, et la détection des séquences doit respecter cette même borne.
+Les prévisions météo archivées ne reproduisent pas exactement les échéances J+2 à J+6 du rendu, ce qui peut rendre
+l'évaluation de l'apport météo optimiste.
 
 ## 3. Ruptures et anomalies dans la période
 

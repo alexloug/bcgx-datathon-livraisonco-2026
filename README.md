@@ -20,7 +20,7 @@ Les tests : `python -m pytest -q tests`.
 ## Démarche
 
 1. **Données** : trafic Paris open data depuis le 21/06/2021, nettoyé sans interpolation ; le capteur muet des Champs-Elysées est reconstruit par le capteur voisin ; calendrier, vacances, fériés, événements saisis à la main, météo prévue ([docs/2_donnees.md](docs/2_donnees.md)).
-2. **Features** : calendrier, historique décalé d'au moins 144 h (S-1 à S-3, niveau 28 j, 52 semaines) en heure de Paris, vacances, météo prévue, événements, régimes : 44 colonnes sans fuite possible.
+2. **Features** : calendrier, historique décalé d'au moins 144 h (S-1 à S-3, niveau 28 j, 52 semaines) en heure de Paris, vacances, météo prévue, événements, régimes : 44 colonnes. Les décalages de l'historique respectent l'horizon de prévision ; les ratios de proxy et certaines règles de nettoyage sont toutefois calculés sur la série complète, ce qui limite la rigueur des backtests historiques ([docs/2_donnees.md](docs/2_donnees.md), §2).
 3. **Modèle** : ensemble de 3 XGBoost et 3 LightGBM (réglages par défaut) par cible, occupation nettoyée des dérives du capteur, comparé à une baseline saisonnière ([docs/3_modele.md](docs/3_modele.md)).
 4. **Validation** : backtest qui rejoue le rendu (cutoff le jeudi 23 h, 1 jour sauté, 5 jours prédits), RMSE sur 24 h, sur les 8 derniers jeudis et 34 semaines contenant un férié.
 
@@ -36,7 +36,7 @@ Les tests : `python -m pytest -q tests`.
 | Réglages par défaut | profondeur, régularisation et recherche aléatoire d'hyperparamètres ne font pas mieux que le bruit | score relatif 0,772 / 0,771 contre 0,771 ; 44 combinaisons tirées au hasard : les 10 meilleures à moins de 1,7 % les unes des autres ; [3_modele](docs/3_modele.md) §4, [exploration/README](exploration/README.md) |
 | Samedi 07/11 baissé de 10 % de 12 h à 23 h (`--manif`) | grosse manifestation annoncée ; le modèle ne peut pas l'apprendre (événements : 1 % de son importance) | effet mesuré × 0,65 à 0,8 les 17 et 24/10/2026, nul le 31/10 : facteur prudent × 0,9, rentable dès 30 % de probabilité d'effet ; [4_rendu](docs/4_rendu.md) §1 |
 | Météo observée et chantiers écartés | la météo observée est inconnue à la prédiction ; les chantiers ne gagnent qu'un fold sur deux | débit avec / sans chantiers : 193/193, 91/89, 79/78 ; [3_modele](docs/3_modele.md) §4 |
-| Heures « Barré » | à compléter avec Victor | à compléter |
+| Heures « Barré » exclues ; correction spécifique pour la cérémonie du 11/11 | les fermetures sont exclues de l'entraînement et de l'évaluation ; pour le rendu, les Champs-Elysées de 9 h à 13 h sont remplacés par un profil historique de cérémonie | `src/predict.py`, fonction `apply_ceremony` ; correction spécifique non évaluée par le backtest standard |
 
 ## Résultats
 
