@@ -16,9 +16,9 @@ Seuls `numpy`, `pandas` et `scipy` (>= 1.9) sont nécessaires.
 
 ```bash
 # sur nos prédictions (recommandé)
-python -m src.roadmap.run_demo --pred output_victor.csv --calage relatif --out outputs/stream_d/victor
+python -m roadmap.run_demo --pred output_victor.csv --calage relatif --out outputs/stream_d/victor
 # sur du trafic simulé
-python -m src.roadmap.run_demo
+python -m roadmap.run_demo
 ```
 
 Le calcul prend environ 2 minutes. Les résultats sont écrits dans le dossier `--out` :

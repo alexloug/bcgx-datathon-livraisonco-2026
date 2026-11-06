@@ -1,8 +1,8 @@
 """Stream D : simulation du planning des livreurs sur la semaine du rendu (07/11 -> 11/11).
 
 Usage :
-    python -m src.roadmap.run_demo                                                   # trafic simulé
-    python -m src.roadmap.run_demo --pred output_<groupe>.csv --calage relatif       # vraies prédictions
+    python -m roadmap.run_demo                                                   # trafic simulé
+    python -m roadmap.run_demo --pred output_<groupe>.csv --calage relatif       # vraies prédictions
 
 Quatre scénarios sont comparés pour 3 zones (une par arc) et 5 jours :
     S0  : planning actuel simulé, sans prévision (vitesse moyenne de la semaine) et 10 % de marge
@@ -19,8 +19,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.roadmap.staffing import approche_min, optimiser_planning, productivite_stops_h, tarif_horaire
-from src.roadmap.traffic_to_time import enrich, load_predictions, synthetic_predictions
+from roadmap.staffing import approche_min, optimiser_planning, productivite_stops_h, tarif_horaire
+from roadmap.traffic_to_time import enrich, load_predictions, synthetic_predictions
 
 # Hypothèses de demande, à remplacer par l'historique de commandes de LivraisonCo.
 ZONES = {  # zone de livraison -> (arc dont le trafic sert de référence, livraisons par jour ouvré)
