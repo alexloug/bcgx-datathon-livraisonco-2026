@@ -135,3 +135,20 @@ def test_predict_without_refresh_only_needs_the_exported_dataset(monkeypatch, tm
     monkeypatch.setattr(predict, "DATASET_MODELE_PATH", tmp_path / "absent.parquet")
     with pytest.raises(SystemExit, match="introuvable"):
         predict.predict("xgb", "test")
+
+
+def test_manifestation_lowers_only_the_given_day_from_noon(tmp_path):
+    from src.predict import MANIF_FACTORS, apply_manifestation
+    start = pd.Timestamp("2026-11-07 00:00", tz=TZ).tz_convert("UTC")
+    end = pd.Timestamp("2026-11-11 23:00", tz=TZ).tz_convert("UTC")
+    hours = pd.date_range(start, end, freq="h")
+    pred = pd.concat([pd.DataFrame({"arc": arc, "datetime": hours, "debit_horaire": 100.0, "taux_occupation": 10.0})
+                      for arc in MANIF_FACTORS])
+    out = apply_manifestation(pred, "2026-11-07")
+    local = out["datetime"].dt.tz_convert(TZ)
+    hit = (local.dt.day == 7) & (local.dt.hour >= 12)
+    assert (out.loc[hit, "debit_horaire"] == 100 * out.loc[hit, "arc"].map(MANIF_FACTORS)).all()
+    assert (out.loc[~hit, ["debit_horaire", "taux_occupation"]] == [100.0, 10.0]).all().all()
+    predict.test_format_and_export_output(to_submission(out), tmp_path, "groupe")
+    with pytest.raises(SystemExit, match="aucune heure"):
+        apply_manifestation(pred, "2026-11-12")

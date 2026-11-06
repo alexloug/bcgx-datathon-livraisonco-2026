@@ -10,7 +10,7 @@ python -m src.predict --group <nom_du_groupe> --refresh
 ```
 
 `--refresh` enchaîne : mise à jour du trafic et de la prévision météo, `build_dataset`, `export_dataset` (contrôles
-bloquants), prédiction XGBoost, test du format BCG, écriture de `outputs/output_<groupe>.csv` (360 lignes, `sep=";"`).
+bloquants), prédiction (modèle `ensemble`), test du format BCG, écriture de `outputs/output_<groupe>.csv` (360 lignes, `sep=";"`).
 La commande échoue avec un message clair si une source manque, si la mise à jour échoue ou si un contrôle échoue ;
 dans ce dernier cas, aucun CSV n'est écrit.
 
@@ -25,7 +25,16 @@ Contrôles à faire avant d'envoyer, dans la sortie de la commande et sur le CSV
 | Saint-Pères | comparer le 31/10 → 05/11 (après le chantier du quai) au niveau 28 j ; un écart > 15 % est à signaler comme risque connu, sans correction manuelle |
 | Format | la fonction de test du brief passe (colonnes, types, format de date, 3 arcs, 360 lignes), après notre contrôle « aucun NaN » |
 | Profil prédit | cohérent avec les mêmes jours des 3 dernières semaines (contrôle visuel) |
-| Fenêtre à la main | manifestations, grèves, cérémonie du 11/11 (déjà saisie), arrêtés de circulation ; compléter `data/evenements/evenements_manuels.csv` si besoin |
+| Fenêtre à la main | manifestations, grèves, cérémonie du 11/11 (déjà saisie), arrêtés de circulation ; voir le tableau ci-dessous |
+
+**La semaine du 07-11/11.** On rejoue des semaines passées et on calcule, jour par jour, débit mesuré / débit prédit
+(1 = le modèle tombe juste). Détail : `exploration/docs/resultats_essais_victor.md`.
+
+| Jour | Décision | Pourquoi |
+|---|---|---|
+| Sam. 07/11, grosse manifestation | `--manif 2026-11-07` : débit et occupation × 0,65 (Champs), × 0,8 (Convention), × 0,65 (Saint-Pères), de 12 h à 23 h | Samedis de manifestation des 17 et 24/10/2026 : le modèle surestime l'après-midi et la soirée (rapport jusqu'à 0,42), le matin est juste. Pas un effet des vacances : premiers samedis de la Toussaint 2023-2025 entre 0,87 et 1,16. Facteurs réglés sur un samedi et vérifiés sur l'autre : erreur −22 à −48 % (débit), −29 à −48 % (occupation). Mais appliqués à tort un samedi normal, ils doublent l'erreur : seulement si la manifestation est confirmée |
+| Mar. 10/11, petite manifestation | rien | Mardis d'octobre 2026 : rapport 1,04 / 1,03 / 0,95 (Champs / Convention / Saint-Pères), comme les lundis et mercredis |
+| Mer. 11/11, férié | rien de plus | Férié, cérémonie et veille de férié déjà dans le dataset ; sur les 11/11 de 2023 à 2025, pas de biais dans un sens (Champs 0,77 à 1,24, Saint-Pères 0,92 à 1,04) |
 
 Reproduire à la main, étape par étape : `python -m src.data.update` puis `python -m src.data.build_dataset` puis
 `python -m src.data.export_dataset` puis `python -m src.predict --group <nom>`. Autres sources optionnelles

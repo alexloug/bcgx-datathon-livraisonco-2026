@@ -3,6 +3,7 @@
 Usage :
     python -m src.predict --group <groupe>              # part des données déjà présentes
     python -m src.predict --group <groupe> --refresh    # met d'abord à jour trafic et prévision météo, reconstruit le dataset
+    python -m src.predict --group <groupe> --manif 2026-11-07   # baisse les prédictions d'un jour de manifestation
 Entrée : data/processed/dataset_modele.parquet. Le cutoff est sa dernière heure observée (cible valide).
 """
 
@@ -89,7 +90,27 @@ def check_sources() -> None:
                          "Lancer `python -m src.data.update`, puis relancer.")
 
 
-def predict(model_name: str, group: str) -> pd.DataFrame:
+# Jour de manifestation : débit et occupation prédits multipliés par ce facteur de 12 h à 23 h (heure de Paris).
+# Facteur = mesuré / prédit, en moyenne sur les samedis de manifestation des 17 et 24/10/2026 (docs/4_rendu.md §1).
+MANIF_FACTORS = {"Champs-Elysées": 0.65, "Convention": 0.8, "Saint-Pères": 0.65}
+MANIF_HOURS = (12, 23)
+
+
+def apply_manifestation(pred: pd.DataFrame, day: str) -> pd.DataFrame:
+    """Le `day` d'une manifestation (AAAA-MM-JJ), multiplie les 2 prédictions par MANIF_FACTORS sur MANIF_HOURS.
+    Le modèle ne peut pas apprendre seul cet effet : trop peu de samedis de manifestation dans l'historique."""
+    local = pred["datetime"].dt.tz_convert(TZ)
+    hit = (local.dt.strftime("%Y-%m-%d") == day) & local.dt.hour.between(*MANIF_HOURS)
+    if not hit.any():
+        raise SystemExit(f"--manif {day} : aucune heure de la fenêtre ce jour-là.")
+    pred = pred.copy()
+    for col in TARGETS:
+        pred.loc[hit, col] *= pred.loc[hit, "arc"].map(MANIF_FACTORS)
+    print(f"Manifestation le {day} : prédictions × {MANIF_FACTORS} de {MANIF_HOURS[0]} h à {MANIF_HOURS[1]} h")
+    return pred
+
+
+def predict(model_name: str, group: str, manif: str | None = None) -> pd.DataFrame:
     if not DATASET_MODELE_PATH.exists():
         raise SystemExit(f"{DATASET_MODELE_PATH} introuvable : lancer avec --refresh (ou, à la main, "
                          "`python -m src.data.build_dataset` puis `python -m src.data.export_dataset`).")
@@ -99,7 +120,10 @@ def predict(model_name: str, group: str) -> pd.DataFrame:
     end = pd.Timestamp(SUBMISSION_END, tz=TZ).tz_convert("UTC")
     print(f"Cutoff : {cutoff.tz_convert(TZ):%Y-%m-%d %H:%M} (Paris), horizon max {(end - cutoff) / pd.Timedelta(hours=1):.0f} h")
     model = MODELS[model_name]().fit(traffic, cutoff)
-    submission = to_submission(model.predict(traffic, cutoff, start, end))
+    pred = model.predict(traffic, cutoff, start, end)
+    if manif:
+        pred = apply_manifestation(pred, manif)
+    submission = to_submission(pred)
     OUTPUTS_DIR.mkdir(exist_ok=True)
     try:
         check_no_nan(submission)
@@ -111,10 +135,11 @@ def predict(model_name: str, group: str) -> pd.DataFrame:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="xgb", choices=list(MODELS))
+    parser.add_argument("--model", default="ensemble", choices=list(MODELS))
     parser.add_argument("--group", required=True, help="nom du groupe, utilisé dans output_<groupe>.csv")
     parser.add_argument("--refresh", action="store_true", help="met à jour trafic et météo puis reconstruit le dataset")
+    parser.add_argument("--manif", metavar="AAAA-MM-JJ", help="jour de manifestation : prédictions baissées de 12 h à 23 h")
     args = parser.parse_args()
     if args.refresh:
         refresh()
-    predict(args.model, args.group)
+    predict(args.model, args.group, args.manif)
