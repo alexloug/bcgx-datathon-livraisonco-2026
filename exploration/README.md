@@ -80,3 +80,7 @@ Agenda culturel de la Ville, téléchargé mais jamais intégré aux features : 
 
 ### Anciennes chaînes de données
 `data/build_traffic.py` et `data/build_external.py` ont précédé `src/data/build_dataset.py`. Seule la liste de périodes `EVENTS` a été reprise (dans `src/config.py`).
+
+### Arcs similaires (Pétronille)
+Pour élargir l'entraînement (plus de fériés et de 11 novembre), recherche des capteurs qui se comportent comme nos 3 arcs : `data/arcs/arcs_similaires.csv` (15 arcs par arc du brief, classés par un score de forme du profil horaire + niveau de débit + niveau d'occupation). Script `data/arcs_similaires.py` (~10 min ; `--local` pour recalculer sans retélécharger), justification de chaque choix dans `docs/arcs_similaires.md`.
+Les Champs ressemblent aux grands boulevards (Madeleine, Sébastopol, Clichy, Foch), Convention au Bd Brune et au Quai d'Orsay, Saint-Pères à Raspail et aux Gobelins. Les arcs similaires réagissent aux fériés plus comme nos arcs que la moyenne (Convention, Saint-Pères ; non concluant pour les Champs, 4 jours seulement). Des tronçons voisins partagent le même compteur (Convention 5662/5664/5674 = 5671, Saint-Pères 192 = 191) : écartés.
