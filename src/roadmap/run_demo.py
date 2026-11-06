@@ -169,7 +169,7 @@ def main(pred_path: str | None, out_dir: str, calage: str = "physique") -> None:
             sensibilite += s
 
     res = pd.DataFrame(lignes)
-    res.to_csv(out / "resultats_par_zone_jour.csv", sep=";", index=False)
+    res.round(2).to_csv(out / "resultats_par_zone_jour.csv", sep=";", index=False)
 
     synth = res.groupby("scenario")[["cout", "heures", "retard", "stops", "heures_nuit"]].sum()
     synth["cout_par_stop"] = synth["cout"] / synth["stops"]
