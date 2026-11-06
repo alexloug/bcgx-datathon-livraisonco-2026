@@ -2,7 +2,7 @@
 
 Même lignes que dataset.parquet, mais seulement les colonnes utiles au modèle : clés, cibles, colonnes de suivi et
 exactement les features que reçoit le prétraitement (`feature_columns` : sans chantiers ni météo observée).
-Contrôles bloquants avant écriture. Doc : docs/livraison_dataset.md.
+Contrôles bloquants avant écriture. Doc : docs/2_donnees.md.
 
 Les 4 colonnes chantiers (`chantier_*`, `chantier_features` dans build_dataset.py) sont toujours générées dans
 dataset.parquet. `--avec-chantiers` les ajoute au fichier livré, pour analyse : le prétraitement du modèle les ignore
@@ -81,16 +81,21 @@ def export(df: pd.DataFrame, avec_chantiers: bool = False) -> tuple[pd.DataFrame
     return out, meta
 
 
+def write(avec_chantiers: bool = False) -> dict:
+    """Lit dataset.parquet, contrôle, écrit dataset_modele.parquet (+ .json) et renvoie les métadonnées."""
+    df, meta = export(pd.read_parquet(DATASET_PATH), avec_chantiers=avec_chantiers)
+    df.to_parquet(DATASET_MODELE_PATH, index=False)
+    DATASET_MODELE_PATH.with_suffix(".json").write_text(json.dumps(meta, indent=2, ensure_ascii=False, default=str))
+    return meta
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Exporte data/processed/dataset_modele.parquet")
     parser.add_argument("--avec-chantiers", action="store_true",
                         help="ajoute les 4 colonnes chantier_* (non utilisées par le modèle)")
-    args = parser.parse_args()
-    df, meta = export(pd.read_parquet(DATASET_PATH), avec_chantiers=args.avec_chantiers)
-    df.to_parquet(DATASET_MODELE_PATH, index=False)
-    DATASET_MODELE_PATH.with_suffix(".json").write_text(json.dumps(meta, indent=2, ensure_ascii=False, default=str))
-    print(f"{meta['version']} : {len(df)} lignes, {df.shape[1]} colonnes "
-          f"({sum(len(v) for v in meta['features'].values())} features), "
+    meta = write(parser.parse_args().avec_chantiers)
+    print(f"{meta['version']} : {meta['lignes']} lignes, "
+          f"{sum(len(v) for v in meta['features'].values())} features, "
           f"dernière heure observée {meta['derniere_heure_observee_utc']}")
     print("Features incomplètes sur la fenêtre :", meta["fenetre_part_renseignee"] or "aucune")
     print(f"-> {DATASET_MODELE_PATH}")

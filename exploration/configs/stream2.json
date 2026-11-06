@@ -1,0 +1,15 @@
+{
+  "dataset": "data/processed/dataset_modele.parquet",
+  "tuning_cutoffs": ["2026-09-03", "2026-09-10", "2026-09-17", "2026-09-24"],
+  "validation_cutoffs": ["2026-10-01", "2026-10-08", "2026-10-15", "2026-10-22"],
+  "diagnostic_cutoffs": ["2023-11-09", "2024-11-07", "2025-11-06"],
+  "candidates": [
+    {"name": "baseline", "model": "baseline"},
+    {"name": "xgb_reference", "model": "xgb"},
+    {"name": "xgb_depth4", "model": "xgb", "params": {"max_depth": 4}},
+    {"name": "xgb_regularized", "model": "xgb", "params": {"max_depth": 4, "min_child_weight": 20, "reg_lambda": 10}},
+    {"name": "xgb_without_weather", "model": "xgb", "drop_prefixes": ["meteo_"]},
+    {"name": "xgb_without_events", "model": "xgb", "drop_prefixes": ["evenement"]},
+    {"name": "xgb_proxy_half", "model": "xgb", "params": {"proxy_weight": 0.5}}
+  ]
+}

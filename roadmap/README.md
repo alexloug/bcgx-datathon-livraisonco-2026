@@ -16,9 +16,9 @@ Seuls `numpy`, `pandas` et `scipy` (>= 1.9) sont nécessaires.
 
 ```bash
 # sur nos prédictions (résultats écrits dans outputs/stream_d/)
-python -m src.roadmap.run_demo --pred <CSV de prédictions du rendu> --calage relatif
+python -m roadmap.run_demo --pred <CSV de prédictions du rendu> --calage relatif
 # sur du trafic simulé (résultats écrits dans outputs/stream_d/trafic_simule/)
-python -m src.roadmap.run_demo
+python -m roadmap.run_demo
 ```
 
 Le calcul prend environ 2 minutes. Le dossier de sortie peut être changé avec `--out`. Il contient :

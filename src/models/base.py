@@ -1,4 +1,4 @@
-"""Interface commune à tous les modèles (baseline, GBM, ...), utilisée par evaluate.py et predict.py."""
+"""Interface commune à tous les modèles (baseline, xgb), utilisée par evaluate.py et predict.py."""
 
 from typing import Protocol
 

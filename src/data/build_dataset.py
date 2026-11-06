@@ -2,7 +2,7 @@
 
 Une ligne par arc du brief et par heure, de TRAIN_START à la fin de la fenêtre à prédire, avec les deux cibles
 (nettoyées, Champs-Elysées reconstruit par proxy après l'arrêt du capteur) et toutes les features disponibles
-au moment de prédire. Hypothèses, choix et ruptures : docs/dataset_entrainement.md.
+au moment de prédire. Hypothèses, choix et ruptures : docs/2_donnees.md.
 
     from src.data.build_dataset import build_dataset
     df, meta = build_dataset()                                   # défauts de config.py
@@ -12,6 +12,8 @@ Usage : python -m src.data.build_dataset [--start "2021-06-21 00:00"] [--end "20
 (après python -m src.data.update)
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 from datetime import timedelta
@@ -19,9 +21,8 @@ from datetime import timedelta
 import numpy as np
 import pandas as pd
 
-from src.config import (ARCS, CHAMPS_PROXIES, DATASET_PATH, MIN_LAG_HOURS, SUBMISSION_END, SUBMISSION_START,
+from src.config import (ARCS, CHAMPS_PROXIES, CHANTIERS_DIR, DATASET_PATH, EVENTS, MIN_LAG_HOURS, SUBMISSION_END, SUBMISSION_START,
                         TARGETS, TRAIN_START, TZ)
-from src.data.build_external import EVENTS
 from src.data.sources import calendrier, chantiers, evenements, meteo, trafic
 from src.features.build import calendar_features, lag_features, level_features, yearly_lag_features
 
@@ -150,7 +151,7 @@ def school_calendar(day: pd.Series) -> pd.DataFrame:
 
     `vacances` seul traite chaque période comme un bloc. Or le trafic bouge à l'intérieur : creux de la mi-août,
     retour dès la dernière semaine d'août, semaine de reprise, semaines qui précèdent les vacances
-    (docs/determinants_trafic.md). Les ponts de l'Ascension ne comptent pas comme une période de vacances ici.
+    (docs/3_modele.md §4). Les ponts de l'Ascension ne comptent pas comme une période de vacances ici.
     """
     vac = calendrier.load("vacances_scolaires")
     vac = vac[~vac["nom"].str.contains("Ascension|Début")].assign(
@@ -316,7 +317,8 @@ def build_dataset(start: str = TRAIN_START, end: str = SUBMISSION_END,
     ], axis=1)
     feats = pd.concat([feats, event_flags(feats)], axis=1)
     feats["vacances_niveau28j"] = level_vacation_share(feats)
-    feats = pd.concat([feats, chantier_features(feats)], axis=1)
+    if (CHANTIERS_DIR / "chantiers_a_paris.parquet").exists():   # optionnel : le modèle n'utilise pas ces colonnes
+        feats = pd.concat([feats, chantier_features(feats)], axis=1)
 
     feats = feats[feats["datetime"] >= start_utc].reset_index(drop=True)
     window = (feats["datetime"] >= pd.Timestamp(SUBMISSION_START, tz=TZ)) & (feats["datetime"] <= pd.Timestamp(SUBMISSION_END, tz=TZ))

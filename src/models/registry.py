@@ -1,13 +1,6 @@
-"""Noms de modèles utilisables en ligne de commande (evaluate.py, predict.py)."""
-
+"""Modèles disponibles, par nom : `--model <nom>` dans evaluate.py et predict.py."""
 from src.models.baseline import SeasonalBaseline
-from src.models.gbm import GBMModel
-from src.models.mlp import MLPModel
+from src.models.ensemble import EnsembleModel
 from src.models.xgb import XGBModel
 
-MODELS = {
-    "baseline": SeasonalBaseline,
-    "gbm": GBMModel,
-    "mlp": MLPModel,
-    "xgb": XGBModel,
-}
+MODELS = {"baseline": SeasonalBaseline, "xgb": XGBModel, "ensemble": EnsembleModel}

@@ -19,7 +19,7 @@ from src.config import ARCS, TARGETS
 ID_COLS = ["arc", "datetime", "is_valid", "source_cible", "partie"]
 WEEKLY_LAGS = [168, 336, 504]
 # Colonnes du dataset écartées du modèle : météo observée (inconnue à la prédiction) ; chantiers (aucun gain en
-# backtest 2022-2024, docs/determinants_trafic.md). Pour réactiver les chantiers, ne pas imputer leurs NaN
+# backtest 2022-2024, docs/3_modele.md §4). Pour réactiver les chantiers, ne pas imputer leurs NaN
 # (2025-2026 = inconnu, pas « aucun chantier ») : XGBoost les gère nativement.
 EXCLUDED_PREFIXES = ("meteo_obs_", "chantier_")
 

@@ -226,3 +226,7 @@ data/**/*.zip
 data/processed/
 outputs/models/
 .DS_Store
+
+# Archives locales et résultats reproductibles
+archive/legacy_csv/
+outputs/experiments/

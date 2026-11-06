@@ -1,0 +1,10 @@
+nom;date_debut;date_fin;recurrence;rues;source;a_verifier;type
+Illuminations de Noël des Champs-Elysées (avenue piétonne);2021-11-21;2021-11-21;ponctuelle;Champs_Elysees;inauguration le 21/11/2021 (euronews, infobae), données : 3 h valides sur 15 (rue barrée);non;fermeture
+Illuminations de Noël des Champs-Elysées (avenue piétonne);2022-11-20;2022-11-20;ponctuelle;Champs_Elysees;euronews du 21/11/2022, données : débit -75 % vs dimanches voisins;oui;fermeture
+Illuminations de Noël des Champs-Elysées (avenue piétonne);2023-11-19;2023-11-19;ponctuelle;Champs_Elysees;inauguration le 19/11/2023 à 16 h, avenue rendue piétonne (lebonbon), données : débit -41 %;non;fermeture
+20 km de Paris;2021-10-10;2021-10-10;ponctuelle;Sts_Peres;date confirmée (stadion-actu), données : débit Saint-Pères +48 %, occupation +82 %;non;perturbation
+20 km de Paris;2022-10-09;2022-10-09;ponctuelle;Sts_Peres;date confirmée (dhnet, 44e édition), données : débit Saint-Pères +30 %, occupation +68 %;non;perturbation
+20 km de Paris;2023-10-08;2023-10-08;ponctuelle;Sts_Peres;date à confirmer, données : débit Saint-Pères +46 %, occupation +71 %;oui;perturbation
+20 km de Paris;2024-10-13;2024-10-13;ponctuelle;Sts_Peres;date à confirmer, données : débit Saint-Pères +41 %, occupation +61 %;oui;perturbation
+Marche contre l'antisémitisme (Palais Bourbon - Palais du Luxembourg);2023-11-12;2023-11-12;ponctuelle;Sts_Peres;macommune.info, données : débit Saint-Pères -46 %, occupation -50 %;non;fermeture
+Mondial de l'Auto 2022 (Paris Expo Porte de Versailles);2022-10-17;2022-10-23;ponctuelle;Convention;dates à confirmer, effet visible un seul jour (sam 22/10 : occupation Convention +132 %, débit +19 %);oui;perturbation

@@ -48,7 +48,7 @@ def update(force: bool = False) -> None:
     for name, dataset in DATASETS.items():
         df = fetch(dataset)
         df.to_parquet(CHANTIERS_DIR / f"{name}.parquet", index=False)
-        print(f"chantier {name:20s} {len(df)} lignes, {df['date_debut'].min()} -> {df['date_fin'].max()} -> {name}.parquet")
+        print(f"chantier {name:20s} {len(df)} lignes, {df['date_debut'].dropna().min()} -> {df['date_fin'].dropna().max()} -> {name}.parquet")
     for year, dataset in HISTORIQUE.items():
         path = HISTORIQUE_DIR / f"{year}.parquet"
         if path.exists() and not force:

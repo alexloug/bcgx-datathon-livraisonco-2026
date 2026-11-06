@@ -13,6 +13,8 @@ Usage :
     python -m src.data.sources.trafic --amont Lecourbe-Convention --since 2026-10-01   # requête ponctuelle
 """
 
+from __future__ import annotations
+
 import argparse
 import io
 import subprocess
