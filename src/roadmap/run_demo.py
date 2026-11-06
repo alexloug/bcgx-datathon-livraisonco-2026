@@ -9,7 +9,8 @@ Quatre scénarios sont comparés pour 3 zones (une par arc) et 5 jours :
     S0* : même logique, avec la plus petite marge qui évite tout retard (référence à service égal)
     S1  : planning calé heure par heure sur la vitesse prédite, B2B livré de 8 h à 18 h
     S2  : S1, en laissant l'optimiseur choisir l'heure des livraisons B2B (6 h -> 19 h)
-Une analyse de sensibilité donne aussi le coût de S2 avec une marge de sécurité de 0 à 25 %.
+Une analyse de sensibilité donne aussi le coût de S2 avec une marge de sécurité de 0 à 25 %,
+et gain_annuel.csv extrapole le gain sur une année à partir d'une semaine type.
 """
 
 import argparse
@@ -45,6 +46,12 @@ PROFIL_B2B_ACTUEL[8:18] = 1.0
 # sur le débit (RMSE 109 véh/h). Le temps de service ne dépend pas du trafic, donc
 # une erreur de x % sur la vitesse ne pèse qu'environ x / 2 % sur la productivité.
 MARGES_SENSIBILITE = [0.0, 0.05, 0.10, 0.15, 0.20, 0.25]
+MARGE_RETENUE = 0.10
+
+# Extrapolation annuelle. La semaine du rendu (samedi -> mercredi) contient un dimanche
+# et un férié : on recompose une semaine type à partir du coût moyen par type de jour.
+JOURS_SEMAINE_TYPE = {"ouvre": 5, "samedi": 1, "dimanche": 1}
+SEMAINES_PAR_AN = 52
 
 
 def jour_type_demande(date: pd.Timestamp) -> str:
@@ -99,7 +106,8 @@ def simuler_zone_jour(zone: str, date, g: pd.DataFrame, volume_ouvre: float, v_m
     for marge in MARGES_SENSIBILITE:
         profil = None if b2b_total > 0 else PROFIL_B2B_ACTUEL
         p2_marge = optimiser_planning(prod=prod, appr=appr, b2b_profil_fixe=profil, marge=marge, **demande)
-        sensibilite.append({"marge": marge, "cout": p2_marge.cout})
+        sensibilite.append({"zone": zone, "date": str(date), "type_jour": type_jour,
+                            "marge": marge, "cout": p2_marge.cout})
 
     lignes = []
     for nom, plan, b2b_h in [("S0", p0, b2b_actuel), ("S0*", p0_etoile, b2b_actuel),
@@ -120,6 +128,26 @@ def simuler_zone_jour(zone: str, date, g: pd.DataFrame, volume_ouvre: float, v_m
         "shifts_S2": [[s.debut, s.duree, n] for s, n in p2.effectifs.items()],
     }
     return lignes, detail, sensibilite
+
+
+def gain_annuel(res: pd.DataFrame, sensibilite: pd.DataFrame) -> pd.DataFrame:
+    """Coût d'une semaine type et d'une année, pour S0*, S2 et S2 avec la marge retenue."""
+    couts = {
+        "S0*": res[res.scenario == "S0*"],
+        "S2": res[res.scenario == "S2"],
+        f"S2 + marge {MARGE_RETENUE:.0%}": sensibilite[np.isclose(sensibilite.marge, MARGE_RETENUE)],
+    }
+    lignes = []
+    for nom, df in couts.items():
+        # Coût moyen d'un jour de chaque type, sommé sur les zones.
+        par_type = df.groupby(["zone", "type_jour"])["cout"].mean().groupby("type_jour").sum()
+        semaine = sum(n * par_type[t] for t, n in JOURS_SEMAINE_TYPE.items())
+        lignes.append({"scenario": nom, "cout_semaine_type": semaine,
+                       "cout_annuel": semaine * SEMAINES_PAR_AN})
+    out = pd.DataFrame(lignes).set_index("scenario")
+    out["gain_annuel_vs_S0*"] = out.loc["S0*", "cout_annuel"] - out["cout_annuel"]
+    out["gain_pct"] = 100 * out["gain_annuel_vs_S0*"] / out.loc["S0*", "cout_annuel"]
+    return out
 
 
 def main(pred_path: str | None, out_dir: str, calage: str = "physique") -> None:
@@ -149,14 +177,20 @@ def main(pred_path: str | None, out_dir: str, calage: str = "physique") -> None:
     synth["gain_vs_S0*_pct"] = 100 * (1 - synth["cout"] / synth.loc["S0*", "cout"])
     synth.round(2).to_csv(out / "synthese_scenarios.csv", sep=";")
 
-    sens = pd.DataFrame(sensibilite).groupby("marge")["cout"].sum().to_frame()
+    sensibilite = pd.DataFrame(sensibilite)
+    sens = sensibilite.groupby("marge")["cout"].sum().to_frame()
     sens["gain_vs_S0*_pct"] = 100 * (1 - sens["cout"] / synth.loc["S0*", "cout"])
     sens.round(1).to_csv(out / "sensibilite_marge.csv", sep=";")
+
+    annuel = gain_annuel(res, sensibilite)
+    annuel = annuel.round({"cout_semaine_type": 0, "cout_annuel": 0, "gain_annuel_vs_S0*": 0, "gain_pct": 1})
+    annuel.to_csv(out / "gain_annuel.csv", sep=";")
 
     (out / "details.json").write_text(json.dumps(details, ensure_ascii=False))
 
     print(synth.round(2).to_string())
     print("\nSensibilité de S2 à la marge de sécurité :\n", sens.round(1).to_string())
+    print("\nExtrapolation sur une année (semaine type) :\n", annuel.to_string())
     print("\nMarges nécessaires pour S0* :\n",
           res[res.scenario == "S0*"][["zone", "date", "marge_S0*"]].to_string(index=False))
 
