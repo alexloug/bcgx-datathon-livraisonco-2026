@@ -25,6 +25,7 @@ Le calcul prend environ 2 minutes. Les résultats sont écrits dans le dossier `
 
 - `synthese_scenarios.csv` : coût, heures de livreurs, livraisons hors créneau et gain de chaque scénario ;
 - `sensibilite_marge.csv` : coût de S2 selon la marge de sécurité ;
+- `gain_annuel.csv` : coût et gain sur une année, à partir d'une semaine type (5 jours ouvrés, un samedi, un dimanche) ;
 - `resultats_par_zone_jour.csv`, `vitesses_predites.csv`, `details.json` : détail par zone, par jour et par heure.
 
 ## Scénarios
@@ -43,6 +44,8 @@ Le calcul prend environ 2 minutes. Les résultats sont écrits dans le dossier `
 | S1 | 1,81 EUR | -13,9 % |
 | S2 | 1,69 EUR | -19,6 % |
 | S2 avec 10 % de marge | | -11,8 % |
+
+Sur une année (semaine type x 52), le coût livreurs actuel des 3 zones est d'environ 1 089 kEUR. Le gain est de 234 kEUR (-21,5 %) sans marge et de 150 kEUR (-13,7 %) avec 10 % de marge.
 
 Sur le trafic simulé, on obtient -12,2 %, -19,3 % et -11,7 % : le résultat ne dépend pas de la source du trafic.
 
