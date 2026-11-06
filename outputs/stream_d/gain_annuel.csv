@@ -1,0 +1,4 @@
+scenario;cout_semaine_type;cout_annuel;gain_annuel_vs_S0*;gain_pct
+S0*;20938.0;1088776.0;0.0;0.0
+S2;16436.0;854672.0;234104.0;21.5
+S2 + marge 10%;18062.0;939224.0;149552.0;13.7
