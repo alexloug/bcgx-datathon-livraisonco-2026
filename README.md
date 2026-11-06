@@ -10,7 +10,7 @@ Dernière donnée disponible : le 05/11 à 23 h, puis 1 jour sauté et 5 jours �
 
 ```bash
 pip install -r requirements.txt && python -m src.data.update --history 2021 2025   # 1re fois seulement : archives trafic, ~10 min
-python -m src.predict --group <groupe> --refresh     # rendu : mise à jour, dataset, prédiction, contrôle BCG -> outputs/output_<groupe>.csv (~30 s)
+python -m src.predict --group <groupe> --refresh --manif 2026-11-07   # rendu : mise à jour, dataset, prédiction, contrôle BCG -> outputs/output_<groupe>.csv (~30 s)
 python -m src.evaluate --model xgb --folds all       # backtest contre la baseline : 8 jeudis + 34 semaines fériées (~20 min ; sans --folds all, 8 jeudis en ~3 min)
 ```
 
@@ -34,7 +34,7 @@ Les tests : `python -m pytest -q tests`.
 | Lags en heure de Paris | un décalage de 24 h × n sur la grille UTC vise une heure fausse après le changement d'heure | 07/11 08:00 visait 17/10 09:00 (322 au lieu de 237) ; 0 écart après correction ; [2_donnees](docs/2_donnees.md) §2 |
 | Ensemble XGBoost + LightGBM | les deux boostings font des erreurs un peu différentes, la moyenne gagne 1 à 2 % de façon régulière | 29 semaines de backtest, 71 % des cas gagnés ; [exploration/docs/resultats_essais_victor.md](exploration/docs/resultats_essais_victor.md) |
 | Réglages par défaut | profondeur, régularisation et recherche aléatoire d'hyperparamètres ne font pas mieux que le bruit | score relatif 0,772 / 0,771 contre 0,771 ; 44 combinaisons tirées au hasard : les 10 meilleures à moins de 1,7 % les unes des autres ; [3_modele](docs/3_modele.md) §4, [exploration/README](exploration/README.md) |
-| Samedi 07/11 corrigé à la main (`--manif`) | grosse manifestation annoncée ; le modèle ne peut pas l'apprendre (événements : 1 % de son importance) | samedis de manifestation d'octobre 2026 : prédictions trop hautes de 12 h à 23 h (rapport jusqu'à 0,42) ; facteurs vérifiés sur l'autre samedi : erreur −22 à −48 % ; [4_rendu](docs/4_rendu.md) §1 |
+| Samedi 07/11 baissé de 10 % de 12 h à 23 h (`--manif`) | grosse manifestation annoncée ; le modèle ne peut pas l'apprendre (événements : 1 % de son importance) | effet mesuré × 0,65 à 0,8 les 17 et 24/10/2026, nul le 31/10 : facteur prudent × 0,9, rentable dès 30 % de probabilité d'effet ; [4_rendu](docs/4_rendu.md) §1 |
 | Météo observée et chantiers écartés | la météo observée est inconnue à la prédiction ; les chantiers ne gagnent qu'un fold sur deux | débit avec / sans chantiers : 193/193, 91/89, 79/78 ; [3_modele](docs/3_modele.md) §4 |
 | Heures « Barré » | à compléter avec Victor | à compléter |
 
@@ -53,7 +53,7 @@ Dernière exécution de `python -m src.evaluate --model xgb --folds all`, donné
 XGBoost bat la baseline sur les 6 couples arc × cible dans les deux familles de semaines. Les gains les plus faibles sont sur les Champs
 (débit en semaines normales : 9 % ; occupation en semaines fériées : 8 %), l'arc à cible reconstruite. Détail par jour d'horizon et par origine de la cible : sortie de la commande.
 
-Les heures « Barré » (fermetures de rue, dont la cérémonie du 11/11 aux Champs-Elysées) sont exclues de l'entraînement et de l'évaluation : l'erreur des Champs sur ces heures est donc sous-estimée. Correction en cours.
+Les heures « Barré » (fermetures de rue, dont la cérémonie du 11/11 aux Champs-Elysées) sont exclues de l'entraînement et de l'évaluation. Pour la cérémonie du 11/11, fermeture certaine et connue à l'avance, `predict.py` remplace les Champs de 9 h à 13 h par la moyenne mesurée les 11/11 passés (`apply_ceremony`).
 
 ## Structure
 

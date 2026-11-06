@@ -6,7 +6,7 @@ Rendu : CSV + code + présentation, avant le **vendredi 06/11 à 18 h**.
 
 ```bash
 pip install -r requirements.txt
-python -m src.predict --group <nom_du_groupe> --refresh
+python -m src.predict --group <nom_du_groupe> --refresh --manif 2026-11-07
 ```
 
 `--refresh` enchaîne : mise à jour du trafic et de la prévision météo, `build_dataset`, `export_dataset` (contrôles
@@ -32,9 +32,9 @@ Contrôles à faire avant d'envoyer, dans la sortie de la commande et sur le CSV
 
 | Jour | Décision | Pourquoi |
 |---|---|---|
-| Sam. 07/11, grosse manifestation | `--manif 2026-11-07` : débit et occupation × 0,65 (Champs), × 0,8 (Convention), × 0,65 (Saint-Pères), de 12 h à 23 h | Samedis de manifestation des 17 et 24/10/2026 : le modèle surestime l'après-midi et la soirée (rapport jusqu'à 0,42), le matin est juste. Pas un effet des vacances : premiers samedis de la Toussaint 2023-2025 entre 0,87 et 1,16. Facteurs réglés sur un samedi et vérifiés sur l'autre : erreur −22 à −48 % (débit), −29 à −48 % (occupation). Mais appliqués à tort un samedi normal, ils doublent l'erreur : seulement si la manifestation est confirmée |
+| Sam. 07/11, grosse manifestation | `--manif 2026-11-07` : débit et occupation × 0,9 sur les 3 arcs, de 12 h à 23 h (facteur prudent, appliqué au rendu) ; l'effet mesuré ci-contre n'a pas joué le 31/10, et × 0,9 réduit la RMSE des samedis 2026 dès qu'un effet est probable à 30 % environ (Champs : toujours, Saint-Pères 27 %, Convention 34 %) | Samedis de manifestation des 17 et 24/10/2026 : le modèle surestime l'après-midi et la soirée (rapport jusqu'à 0,42), le matin est juste. Pas un effet des vacances : premiers samedis de la Toussaint 2023-2025 entre 0,87 et 1,16. Facteurs réglés sur un samedi et vérifiés sur l'autre : erreur −22 à −48 % (débit), −29 à −48 % (occupation). Mais appliqués à tort un samedi normal, ils doublent l'erreur : seulement si la manifestation est confirmée |
 | Mar. 10/11, petite manifestation | rien | Mardis d'octobre 2026 : rapport 1,04 / 1,03 / 0,95 (Champs / Convention / Saint-Pères), comme les lundis et mercredis |
-| Mer. 11/11, férié | rien de plus | Férié, cérémonie et veille de férié déjà dans le dataset ; sur les 11/11 de 2023 à 2025, pas de biais dans un sens (Champs 0,77 à 1,24, Saint-Pères 0,92 à 1,04) |
+| Mer. 11/11, férié et cérémonie | Champs-Elysées de 9 h à 13 h remplacés par la moyenne mesurée les 11/11 2021, 2023-2025 (120, 31, 29, 53, 282 véh/h), toujours appliqué (`apply_ceremony`) | Arc 4264 « Barré » ces heures-là chaque année, 12 à 223 véh/h : heures exclues de l'entraînement, donc prédites comme un férié ordinaire (340 à 770 véh/h). Reste de la journée inchangé : Férié, cérémonie et veille de férié déjà dans le dataset ; sur les 11/11 de 2023 à 2025, pas de biais dans un sens (Champs 0,77 à 1,24, Saint-Pères 0,92 à 1,04) |
 
 Reproduire à la main, étape par étape : `python -m src.data.update` puis `python -m src.data.build_dataset` puis
 `python -m src.data.export_dataset` puis `python -m src.predict --group <nom>`. Autres sources optionnelles

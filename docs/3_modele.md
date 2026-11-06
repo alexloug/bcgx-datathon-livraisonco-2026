@@ -23,8 +23,7 @@ Le gain est modeste (le bruit d'une graine est de 2 à 3 %) mais régulier, et v
 nettoyage (nul sur 2026 et sur le 11/11). Détail : `exploration/docs/resultats_essais_victor.md`.
 
 **Option `--manif AAAA-MM-JJ`** de `predict.py` : multiplie les prédictions d'une journée de manifestation de 12 h à 23 h
-(× 0,65 Champs et Saint-Pères, × 0,8 Convention). **Désactivée par défaut** : à n'utiliser que si la manifestation est
-confirmée (appliquée à tort un samedi normal, elle double l'erreur ; voir 4_rendu.md).
+(× 0,9 sur les 3 arcs, facteur prudent ; voir 4_rendu.md). Utilisée pour le rendu : `--manif 2026-11-07`.
 
 Baseline de référence : moyenne des 4 dernières semaines, même jour et même heure. Elle ignore les jours fériés ;
 les modèles les apprennent grâce à `ferie` et au lag 52 semaines (sur le 11/11 seul, XGBoost : débit Convention
