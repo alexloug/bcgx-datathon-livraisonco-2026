@@ -15,18 +15,19 @@ Ce module transforme les prédictions de trafic du livrable 1 en un planning de 
 Seuls `numpy`, `pandas` et `scipy` (>= 1.9) sont nécessaires.
 
 ```bash
-# sur nos prédictions (recommandé)
-python -m src.roadmap.run_demo --pred output_victor.csv --calage relatif --out outputs/stream_d/victor
-# sur du trafic simulé
+# sur nos prédictions (résultats écrits dans outputs/stream_d/)
+python -m src.roadmap.run_demo --pred <CSV de prédictions du rendu> --calage relatif
+# sur du trafic simulé (résultats écrits dans outputs/stream_d/trafic_simule/)
 python -m src.roadmap.run_demo
 ```
 
-Le calcul prend environ 2 minutes. Les résultats sont écrits dans le dossier `--out` :
+Le calcul prend environ 2 minutes. Le dossier de sortie peut être changé avec `--out`. Il contient :
 
 - `synthese_scenarios.csv` : coût, heures de livreurs, livraisons hors créneau et gain de chaque scénario ;
 - `sensibilite_marge.csv` : coût de S2 selon la marge de sécurité ;
 - `gain_annuel.csv` : coût et gain sur une année, à partir d'une semaine type (5 jours ouvrés, un samedi, un dimanche) ;
-- `resultats_par_zone_jour.csv`, `vitesses_predites.csv`, `details.json` : détail par zone, par jour et par heure.
+- `resultats_par_zone_jour.csv` : détail par zone et par jour ;
+- `vitesses_predites.csv`, `details.json` : vitesses et plannings heure par heure (non versionnés).
 
 ## Scénarios
 
@@ -53,7 +54,7 @@ Sur le trafic simulé, on obtient -12,2 %, -19,3 % et -11,7 % : le résultat ne 
 
 **Calage des vitesses.** La vitesse au capteur vaut v = q * L / tau, avec L la longueur d'un véhicule plus celle de la boucle (environ 5,5 m). Sur nos prédictions, le taux d'occupation de la Convention reste sous 6 % en journée, et cette formule donne plus de 50 km/h. Le calage `relatif` ne garde donc que la variation de q / tau dans la semaine, rapportée à son niveau en circulation libre (95e centile par arc) et ancrée sur 30 km/h * 0,6 = 18 km/h. Les vitesses obtenues vont de 5 à 18 km/h. Le calage absolu demandera les traces GPS des livreurs.
 
-**Marge de sécurité.** En backtest, le modèle final se trompe d'environ 20 % sur le débit (RMSE de 109 véh/h, voir `pour_dannyl.csv`). Le temps de service à la porte ne dépend pas du trafic, donc une erreur de x % sur la vitesse ne pèse qu'environ x / 2 % sur la productivité. Nous retenons 10 % de marge. Le gain disparaît vers 25 %.
+**Marge de sécurité.** En backtest, le modèle final se trompe d'environ 20 % sur le débit (RMSE de 109 véh/h en backtest sur 42 semaines). Le temps de service à la porte ne dépend pas du trafic, donc une erreur de x % sur la vitesse ne pèse qu'environ x / 2 % sur la productivité. Nous retenons 10 % de marge. Le gain disparaît vers 25 %.
 
 ## Hypothèses à remplacer par les données de LivraisonCo
 
